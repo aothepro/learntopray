@@ -1,0 +1,6 @@
+module Pods_prayerapp {
+  umbrella header "Pods-prayerapp-umbrella.h"
+
+  export *
+  module * { export * }
+}
