@@ -93,6 +93,9 @@ export default function PrayScreen() {
     if (index === prayer.rakaat - 1) {
       // Last Rakaat
       sourceDetails.push(tahiyat_akhir);
+
+      // TODO: 
+      // Add "Assalamualaikum Warahmatullah" x2
     } else if (index % 2 !== 0) {
       // Even rakaat
       sourceDetails.push(tahiyat_awal);
