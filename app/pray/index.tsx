@@ -11,6 +11,7 @@ import {
 import { ALL_SURAH, TSourceDetail } from "@/surah";
 import { PRAYERS } from "@/prayers";
 import { ThemedText } from "@/components/ThemedText";
+import { PLAYBACK_STATUS } from "@/ultilities/audio";
 
 const alfatihah: TSourceDetail = ALL_SURAH.alfatihah;
 const takbir: TSourceDetail = {
@@ -105,40 +106,83 @@ export default function PrayScreen() {
     }
   }
 
-  let players: AudioPlayer[];
+  const INITIAL_AUDIO_PLAYER_DETAILS = {
+    index: 0,
+    player: createAudioPlayer(sourceDetails[0].source),
+  };
+
+  const [currentAudioPlayerDetails, setCurrentAudioPlayerDetails] = useState<{
+    index: number;
+    player: AudioPlayer;
+  }>(INITIAL_AUDIO_PLAYER_DETAILS);
+
+  const [playbackStatus, setPlaybackStatus] = useState<PLAYBACK_STATUS>(
+    PLAYBACK_STATUS.NOT_STARTED
+  );
 
   useEffect(() => {
-    players = sourceDetails.map((sourceDetail, index) => {
-      const player = createAudioPlayer(sourceDetail.source);
-      player.addListener(PLAYBACK_STATUS_UPDATE, (status) => {
+    currentAudioPlayerDetails.player.addListener(
+      PLAYBACK_STATUS_UPDATE,
+      (status) => {
         if (status.didJustFinish) {
-          player.seekTo(0);
-          if (index < sourceDetails.length - 1) {
-            players[index + 1].play();
+          // Play next audio if has
+          if (currentAudioPlayerDetails.index < sourceDetails.length - 1) {
+            const nextIndexToPlay = currentAudioPlayerDetails.index + 1;
+            const nextPlayer = createAudioPlayer(
+              sourceDetails[nextIndexToPlay].source
+            );
+            nextPlayer.play();
+            setCurrentAudioPlayerDetails({
+              index: nextIndexToPlay,
+              player: nextPlayer,
+            });
           }
         }
-      });
-
-      return player;
-    });
+      }
+    );
 
     return () => {
-      players.map((player) => {
-        player.removeAllListeners(PLAYBACK_STATUS_UPDATE);
-        player.remove();
-        player.release();
-      });
+      currentAudioPlayerDetails.player.removeAllListeners(
+        PLAYBACK_STATUS_UPDATE
+      );
+      currentAudioPlayerDetails.player.remove();
+      currentAudioPlayerDetails.player.release();
     };
-  }, []);
+  }, [currentAudioPlayerDetails]);
 
   return (
     <ThemedView>
-      <Button
-        title="Start Prayer"
-        onPress={() => {
-          players[0].play();
-        }}
-      />
+      {playbackStatus === PLAYBACK_STATUS.NOT_STARTED && (
+        <Button
+          title="Start Prayer"
+          onPress={() => {
+            currentAudioPlayerDetails.player.play();
+            setPlaybackStatus(PLAYBACK_STATUS.PLAYING);
+          }}
+        />
+      )}
+      {playbackStatus === PLAYBACK_STATUS.PLAYING && (
+        <>
+          <Button
+            title="Pause"
+            onPress={() => {
+              currentAudioPlayerDetails.player.pause();
+              setPlaybackStatus(PLAYBACK_STATUS.PAUSED);
+            }}
+          />
+        </>
+      )}
+      {playbackStatus === PLAYBACK_STATUS.PAUSED && (
+        <>
+          <Button
+            title="Resume"
+            onPress={() => {
+              currentAudioPlayerDetails.player.play();
+              setPlaybackStatus(PLAYBACK_STATUS.PLAYING);
+            }}
+          />
+        </>
+      )}
     </ThemedView>
   );
 }
