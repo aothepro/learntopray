@@ -1,0 +1,5 @@
+export enum PLAYBACK_STATUS {
+    PLAYING,
+    PAUSED,
+    NOT_STARTED,
+}

@@ -16,22 +16,22 @@ export const PRAYERS: TPrayer = {
   },
   "zuhr": {
     title: "Zuhr",
-    niat: require("./assets/audio/niat/subuh.mp3"),
+    niat: require("./assets/audio/niat/zuhur.mp3"),
     rakaat: 4
   },
   "asr": {
     title: "‘Asr",
-    niat: require("./assets/audio/niat/subuh.mp3"),
+    niat: require("./assets/audio/niat/asar.mp3"),
     rakaat: 4
   },
   "Maghrib": {
     title: "Maghrib",
-    niat: require("./assets/audio/niat/subuh.mp3"),
+    niat: require("./assets/audio/niat/maghrib.mp3"),
     rakaat: 3
   },
   "ishak": {
     title: "‘Ishā",
-    niat: require("./assets/audio/niat/subuh.mp3"),
+    niat: require("./assets/audio/niat/isyak.mp3"),
     rakaat: 4
   },
 
