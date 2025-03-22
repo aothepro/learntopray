@@ -2,7 +2,7 @@ import { Button } from "react-native";
 
 import { ThemedView } from "@/components/ThemedView";
 import { useLocalSearchParams } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   AudioPlayer,
   createAudioPlayer,
@@ -14,20 +14,20 @@ import { ThemedText } from "@/components/ThemedText";
 
 const alfatihah: TSourceDetail = ALL_SURAH.alfatihah;
 const takbir: TSourceDetail = {
-  title: "takbir",
+  title: "Takbir",
   source: require("@/assets/audio/takbir.mp3"),
 };
 const itidal: TSourceDetail = {
-  title: "takbir",
+  title: "Itidal",
   source: require("@/assets/audio/itidal.mp3"),
 };
 const sujud: TSourceDetail = {
-  title: "sujud",
-  source: require("@/assets/audio/itidal.mp3"),
+  title: "Sujud",
+  source: require("@/assets/audio/sujud.mp3"),
 };
 
 const julus: TSourceDetail = {
-  title: "julus",
+  title: "Julus",
   source: require("@/assets/audio/julus.mp3"),
 };
 
@@ -39,6 +39,11 @@ const tahiyat_awal: TSourceDetail = {
 const tahiyat_akhir: TSourceDetail = {
   title: "Tahiyat Akhir",
   source: require("@/assets/audio/tahiyat_akhir.mp3"),
+};
+
+const salam: TSourceDetail = {
+  title: "Salam",
+  source: require("@/assets/audio/salam.mp3"),
 };
 
 export default function PrayScreen() {
@@ -93,9 +98,7 @@ export default function PrayScreen() {
     if (index === prayer.rakaat - 1) {
       // Last Rakaat
       sourceDetails.push(tahiyat_akhir);
-
-      // TODO: 
-      // Add "Assalamualaikum Warahmatullah" x2
+      sourceDetails.push(salam);
     } else if (index % 2 !== 0) {
       // Even rakaat
       sourceDetails.push(tahiyat_awal);
@@ -103,6 +106,7 @@ export default function PrayScreen() {
   }
 
   let players: AudioPlayer[];
+
   useEffect(() => {
     players = sourceDetails.map((sourceDetail, index) => {
       const player = createAudioPlayer(sourceDetail.source);
@@ -126,10 +130,11 @@ export default function PrayScreen() {
       });
     };
   }, []);
+
   return (
     <ThemedView>
       <Button
-        title="Play Sound"
+        title="Start Prayer"
         onPress={() => {
           players[0].play();
         }}
