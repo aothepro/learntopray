@@ -1,4 +1,4 @@
-import { Image, StyleSheet, Platform, Button, Pressable } from "react-native";
+import { Image, StyleSheet, Platform, Pressable } from "react-native";
 
 import { HelloWave } from "@/components/HelloWave";
 import ParallaxScrollView from "@/components/ParallaxScrollView";

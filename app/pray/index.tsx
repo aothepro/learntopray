@@ -1,7 +1,6 @@
-import { Button } from "react-native";
-
+import { Button, StyleSheet } from "react-native";
 import { ThemedView } from "@/components/ThemedView";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   AudioPlayer,
@@ -62,7 +61,7 @@ export default function PrayScreen() {
   const prayer = PRAYERS[prayerName];
 
   const sourceDetails: TSourceDetail[] = [
-    { title: "niat", source: prayer.niat },
+    { title: "Niat", source: prayer.niat },
   ];
 
   for (let index = 0; index < prayer.rakaat; index++) {
@@ -70,7 +69,7 @@ export default function PrayScreen() {
 
     if (index === 0) {
       sourceDetails.push({
-        title: "iftitah",
+        title: "Iftitah",
         source: require("@/assets/audio/iftitah.mp3"),
       });
     }
@@ -78,14 +77,16 @@ export default function PrayScreen() {
     sourceDetails.push(alfatihah);
 
     // TEMPORARY Any surah
-    sourceDetails.push({
-      title: "any surah",
-      source: require("@/assets/audio/surah/short/alikhlas.mp3"),
-    });
+    if (index === 0) {
+      sourceDetails.push(ALL_SURAH.alkafirun);
+    }
+    if (index === 1) {
+      sourceDetails.push(ALL_SURAH.alikhlas);
+    }
 
     sourceDetails.push(takbir);
     sourceDetails.push({
-      title: "ruku'",
+      title: "Ruku'",
       source: require("@/assets/audio/rukuk.mp3"),
     });
     sourceDetails.push(itidal);
@@ -95,6 +96,7 @@ export default function PrayScreen() {
     sourceDetails.push(julus);
     sourceDetails.push(takbir);
     sourceDetails.push(sujud);
+    sourceDetails.push(takbir);
 
     if (index === prayer.rakaat - 1) {
       // Last Rakaat
@@ -109,11 +111,13 @@ export default function PrayScreen() {
   const INITIAL_AUDIO_PLAYER_DETAILS = {
     index: 0,
     player: createAudioPlayer(sourceDetails[0].source),
+    stepTitle: sourceDetails[0].title,
   };
 
   const [currentAudioPlayerDetails, setCurrentAudioPlayerDetails] = useState<{
     index: number;
     player: AudioPlayer;
+    stepTitle: string;
   }>(INITIAL_AUDIO_PLAYER_DETAILS);
 
   const [playbackStatus, setPlaybackStatus] = useState<PLAYBACK_STATUS>(
@@ -135,7 +139,11 @@ export default function PrayScreen() {
             setCurrentAudioPlayerDetails({
               index: nextIndexToPlay,
               player: nextPlayer,
+              stepTitle: sourceDetails[nextIndexToPlay].title,
             });
+          } else {
+            // Prayer Completed
+            router.dismiss();
           }
         }
       }
@@ -151,38 +159,63 @@ export default function PrayScreen() {
   }, [currentAudioPlayerDetails]);
 
   return (
-    <ThemedView>
-      {playbackStatus === PLAYBACK_STATUS.NOT_STARTED && (
-        <Button
-          title="Start Prayer"
-          onPress={() => {
-            currentAudioPlayerDetails.player.play();
-            setPlaybackStatus(PLAYBACK_STATUS.PLAYING);
-          }}
-        />
-      )}
-      {playbackStatus === PLAYBACK_STATUS.PLAYING && (
-        <>
+    <ThemedView style={styles.titleContainer}>
+      <ThemedView style={{ ...styles.stepContainer, ...styles.visuals }}>
+        <ThemedText>{currentAudioPlayerDetails.stepTitle}</ThemedText>
+      </ThemedView>
+      <ThemedView style={{ ...styles.stepContainer, ...styles.buttons }}>
+        {playbackStatus === PLAYBACK_STATUS.NOT_STARTED && (
           <Button
-            title="Pause"
-            onPress={() => {
-              currentAudioPlayerDetails.player.pause();
-              setPlaybackStatus(PLAYBACK_STATUS.PAUSED);
-            }}
-          />
-        </>
-      )}
-      {playbackStatus === PLAYBACK_STATUS.PAUSED && (
-        <>
-          <Button
-            title="Resume"
+            title="Start Prayer"
             onPress={() => {
               currentAudioPlayerDetails.player.play();
               setPlaybackStatus(PLAYBACK_STATUS.PLAYING);
             }}
           />
-        </>
-      )}
+        )}
+        {playbackStatus === PLAYBACK_STATUS.PLAYING && (
+          <>
+            <Button
+              title="Pause"
+              onPress={() => {
+                currentAudioPlayerDetails.player.pause();
+                setPlaybackStatus(PLAYBACK_STATUS.PAUSED);
+              }}
+            />
+          </>
+        )}
+        {playbackStatus === PLAYBACK_STATUS.PAUSED && (
+          <>
+            <Button
+              title="Resume"
+              onPress={() => {
+                currentAudioPlayerDetails.player.play();
+                setPlaybackStatus(PLAYBACK_STATUS.PLAYING);
+              }}
+            />
+          </>
+        )}
+      </ThemedView>
     </ThemedView>
   );
 }
+
+const styles = StyleSheet.create({
+  titleContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    height: "100%",
+    paddingBottom: "10%",
+  },
+  stepContainer: {
+    gap: 8,
+    marginBottom: 8,
+  },
+  visuals: {
+    flexGrow: 1,
+    justifyContent: "center",
+  },
+  buttons: {},
+});
