@@ -1,4 +1,4 @@
-import { Button, StyleSheet } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
 import { ThemedView } from "@/components/ThemedView";
 import { useLocalSearchParams, router } from "expo-router";
 import { useEffect, useState } from "react";
@@ -150,11 +150,19 @@ export default function PrayScreen() {
     );
 
     return () => {
-      currentAudioPlayerDetails.player.removeAllListeners(
-        PLAYBACK_STATUS_UPDATE
-      );
-      currentAudioPlayerDetails.player.remove();
-      currentAudioPlayerDetails.player.release();
+      try {
+        currentAudioPlayerDetails.player.removeAllListeners(
+          PLAYBACK_STATUS_UPDATE
+        );
+        currentAudioPlayerDetails.player.remove();
+        currentAudioPlayerDetails.player.release();
+      } catch (e) {
+        console.log(
+          "Failed to clean up audio player",
+          e,
+          currentAudioPlayerDetails.player
+        );
+      }
     };
   }, [currentAudioPlayerDetails]);
 
@@ -163,36 +171,44 @@ export default function PrayScreen() {
       <ThemedView style={{ ...styles.stepContainer, ...styles.visuals }}>
         <ThemedText>{currentAudioPlayerDetails.stepTitle}</ThemedText>
       </ThemedView>
-      <ThemedView style={{ ...styles.stepContainer, ...styles.buttons }}>
+      <ThemedView
+        style={{ ...styles.stepContainer, ...styles.buttonContainer }}
+      >
         {playbackStatus === PLAYBACK_STATUS.NOT_STARTED && (
-          <Button
-            title="Start Prayer"
+          <Pressable
+            style={styles.button}
             onPress={() => {
               currentAudioPlayerDetails.player.play();
               setPlaybackStatus(PLAYBACK_STATUS.PLAYING);
             }}
-          />
+          >
+            <ThemedText style={styles.buttonText}>Start Prayer</ThemedText>
+          </Pressable>
         )}
         {playbackStatus === PLAYBACK_STATUS.PLAYING && (
           <>
-            <Button
-              title="Pause"
+            <Pressable
+              style={styles.button}
               onPress={() => {
                 currentAudioPlayerDetails.player.pause();
                 setPlaybackStatus(PLAYBACK_STATUS.PAUSED);
               }}
-            />
+            >
+              <ThemedText style={styles.buttonText}>Pause</ThemedText>
+            </Pressable>
           </>
         )}
         {playbackStatus === PLAYBACK_STATUS.PAUSED && (
           <>
-            <Button
-              title="Resume"
+            <Pressable
+              style={styles.button}
               onPress={() => {
                 currentAudioPlayerDetails.player.play();
                 setPlaybackStatus(PLAYBACK_STATUS.PLAYING);
               }}
-            />
+            >
+              <ThemedText style={styles.buttonText}>Resume</ThemedText>
+            </Pressable>
           </>
         )}
       </ThemedView>
@@ -202,12 +218,9 @@ export default function PrayScreen() {
 
 const styles = StyleSheet.create({
   titleContainer: {
-    flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
     height: "100%",
-    paddingBottom: "10%",
   },
   stepContainer: {
     gap: 8,
@@ -217,5 +230,22 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: "center",
   },
-  buttons: {},
+  buttonContainer: {
+    width: "100%",
+    paddingBottom: 20,
+    paddingHorizontal: "auto",
+    alignItems: "center",
+  },
+  button: {
+    minWidth: 200,
+    maxWidth: 300,
+    padding: 15,
+    alignItems: "center",
+    borderRadius: 5,
+    backgroundColor: "#007AFF",
+    color: "#FFFFFF",
+  },
+  buttonText: {
+    color: "#FFFFFF",
+  },
 });

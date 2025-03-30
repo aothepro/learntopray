@@ -1,7 +1,6 @@
-import { Image, StyleSheet, Platform, Pressable } from "react-native";
+import { StyleSheet, Pressable, SectionList, SafeAreaView } from "react-native";
 
 import { HelloWave } from "@/components/HelloWave";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Link } from "expo-router";
@@ -9,74 +8,58 @@ import { PRAYERS } from "@/prayers";
 
 export default function HomeScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
-      headerImage={
-        <Image
-          source={require("@/assets/images/partial-react-logo.png")}
-          style={styles.reactLogo}
+    <SafeAreaView>
+      <ThemedView style={styles.container}>
+        <SectionList
+          sections={[
+            {
+              title: "Select Your Prayer",
+              data: Object.keys(PRAYERS),
+            },
+          ]}
+          keyExtractor={(item, index) => item + index}
+          renderItem={({ item }) => (
+            <ThemedView style={styles.stepContainer}>
+              <Link
+                key={item}
+                href={{
+                  pathname: "/pray",
+                  params: { prayerName: item },
+                }}
+                asChild
+              >
+                <Pressable>
+                  <ThemedText type="subtitle">{PRAYERS[item].title}</ThemedText>
+                </Pressable>
+              </Link>
+            </ThemedView>
+          )}
+          renderSectionHeader={({ section: { title } }) => (
+            <ThemedView style={styles.titleContainer}>
+              <ThemedText type="title">{title}</ThemedText>
+              <HelloWave />
+            </ThemedView>
+          )}
         />
-      }
-    >
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Select your prayer!</ThemedText>
-        <HelloWave />
       </ThemedView>
-
-      <ThemedView style={styles.stepContainer}>
-        {Object.keys(PRAYERS).map((prayerName) => (
-          <Link
-            key={prayerName}
-            href={{
-              pathname: "/pray",
-              params: { prayerName },
-            }}
-            asChild
-          >
-            <Pressable>
-              <ThemedView>
-                <ThemedText type="subtitle">
-                  {PRAYERS[prayerName].title}
-                </ThemedText>
-                <ThemedText>
-                  Edit
-                  <ThemedText type="defaultSemiBold">
-                    app/(tabs)/index.tsx
-                  </ThemedText>
-                  to see changes. Press{" "}
-                  <ThemedText type="defaultSemiBold">
-                    {Platform.select({
-                      ios: "cmd + d",
-                      android: "cmd + m",
-                      web: "F12",
-                    })}
-                  </ThemedText>
-                  to open developer tools.
-                </ThemedText>
-              </ThemedView>
-            </Pressable>
-          </Link>
-        ))}
-      </ThemedView>
-    </ParallaxScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    height: "100%",
+  },
   titleContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    padding: 16,
   },
   stepContainer: {
-    gap: 8,
+    padding: 8,
     marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: "absolute",
+    borderColor: "#DADADA",
+    borderTopWidth: 1,
+    margin: 8,
   },
 });
