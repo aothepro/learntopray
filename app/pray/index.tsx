@@ -1,12 +1,13 @@
-import { Pressable, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import { ThemedView } from "@/components/ThemedView";
 import { useLocalSearchParams, router } from "expo-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useAudioPlaylist, useAudioPlaylistStatus } from "expo-audio";
 import { PRAYERS, TPrayer } from "@/prayers";
 import { ThemedText } from "@/components/ThemedText";
-import { PLAYBACK_STATUS } from "@/ultilities/audio";
 import { buildPrayerSequence } from "@/prayerSequence";
+import { PrayerPlayerBar } from "@/components/PrayerPlayerBar";
+import { useTrackDurations } from "@/hooks/useTrackDurations";
 
 type Prayer = TPrayer[string];
 
@@ -28,18 +29,49 @@ export default function PrayScreen() {
 
 function PrayPlayer({ prayer }: { prayer: Prayer }) {
   const sourceDetails = useMemo(() => buildPrayerSequence(prayer), [prayer]);
+  const sources = useMemo(
+    () => sourceDetails.map((detail) => detail.source),
+    [sourceDetails],
+  );
   const playlist = useAudioPlaylist({
-    sources: sourceDetails.map((detail) => detail.source),
+    sources,
     loop: "none",
   });
   const status = useAudioPlaylistStatus(playlist);
-  const [playbackStatus, setPlaybackStatus] = useState<PLAYBACK_STATUS>(
-    PLAYBACK_STATUS.NOT_STARTED,
-  );
+  const { durations, isReady: canSeek } = useTrackDurations(sources);
   const didComplete = useRef(false);
+  const pendingSeek = useRef<{ index: number; offset: number } | null>(null);
 
-  const currentStepTitle =
-    sourceDetails[status.currentIndex]?.title ?? sourceDetails[0]?.title;
+  const currentStep =
+    sourceDetails[status.currentIndex] ?? sourceDetails[0];
+  const elapsed = useMemo(
+    () => {
+      if (!canSeek) {
+        return 0;
+      }
+
+      return (
+        durations
+          .slice(0, status.currentIndex)
+          .reduce((sum, duration) => sum + duration, 0) + status.currentTime
+      );
+    },
+    [canSeek, durations, status.currentIndex, status.currentTime],
+  );
+  const total = useMemo(
+    () => durations.reduce((sum, duration) => sum + duration, 0),
+    [durations],
+  );
+
+  useEffect(() => {
+    const seek = pendingSeek.current;
+    if (!seek || status.currentIndex !== seek.index) {
+      return;
+    }
+
+    pendingSeek.current = null;
+    playlist.seekTo(seek.offset);
+  }, [playlist, status.currentIndex]);
 
   useEffect(() => {
     if (didComplete.current || sourceDetails.length === 0) {
@@ -53,82 +85,86 @@ function PrayPlayer({ prayer }: { prayer: Prayer }) {
     }
   }, [status.didJustFinish, status.currentIndex, sourceDetails.length]);
 
+  const seekToPrayerTime = useCallback(
+    (requestedTime: number) => {
+      if (!canSeek || total <= 0) {
+        return;
+      }
+
+      const targetTime = Math.min(
+        Math.max(requestedTime, 0),
+        Math.max(total - 0.01, 0),
+      );
+      let index = 0;
+      let startTime = 0;
+
+      while (
+        index < durations.length - 1 &&
+        targetTime >= startTime + durations[index]
+      ) {
+        startTime += durations[index];
+        index += 1;
+      }
+
+      const offset = targetTime - startTime;
+      if (index === status.currentIndex) {
+        playlist.seekTo(offset);
+      } else {
+        pendingSeek.current = { index, offset };
+        playlist.skipTo(index);
+      }
+    },
+    [canSeek, durations, playlist, status.currentIndex, total],
+  );
+
+  const togglePlayback = useCallback(() => {
+    if (status.playing) {
+      playlist.pause();
+    } else {
+      playlist.play();
+    }
+  }, [playlist, status.playing]);
+
   return (
-    <ThemedView style={styles.titleContainer}>
-      <ThemedView style={{ ...styles.stepContainer, ...styles.visuals }}>
-        <ThemedText>{currentStepTitle}</ThemedText>
+    <ThemedView style={styles.container}>
+      <ThemedView style={styles.currentStep}>
+        <ThemedText type="subtitle" style={styles.rakaat}>
+          {currentStep?.rakaat
+            ? `Rakaat ${currentStep.rakaat} of ${prayer.rakaat}`
+            : "Before Rakaat"}
+        </ThemedText>
+        <ThemedText type="title" style={styles.clipTitle}>
+          {currentStep?.title}
+        </ThemedText>
       </ThemedView>
-      <ThemedView
-        style={{ ...styles.stepContainer, ...styles.buttonContainer }}
-      >
-        {playbackStatus === PLAYBACK_STATUS.NOT_STARTED && (
-          <Pressable
-            style={styles.button}
-            onPress={() => {
-              playlist.play();
-              setPlaybackStatus(PLAYBACK_STATUS.PLAYING);
-            }}
-          >
-            <ThemedText style={styles.buttonText}>Start Prayer</ThemedText>
-          </Pressable>
-        )}
-        {playbackStatus === PLAYBACK_STATUS.PLAYING && (
-          <Pressable
-            style={styles.button}
-            onPress={() => {
-              playlist.pause();
-              setPlaybackStatus(PLAYBACK_STATUS.PAUSED);
-            }}
-          >
-            <ThemedText style={styles.buttonText}>Pause</ThemedText>
-          </Pressable>
-        )}
-        {playbackStatus === PLAYBACK_STATUS.PAUSED && (
-          <Pressable
-            style={styles.button}
-            onPress={() => {
-              playlist.play();
-              setPlaybackStatus(PLAYBACK_STATUS.PLAYING);
-            }}
-          >
-            <ThemedText style={styles.buttonText}>Resume</ThemedText>
-          </Pressable>
-        )}
-      </ThemedView>
+      <PrayerPlayerBar
+        elapsed={elapsed}
+        total={total}
+        playing={status.playing}
+        canSeek={canSeek}
+        onSeek={seekToPrayerTime}
+        onTogglePlayback={togglePlayback}
+      />
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    alignItems: "center",
+  container: {
+    flex: 1,
+  },
+  currentStep: {
+    flex: 1,
     justifyContent: "center",
-    height: "100%",
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  visuals: {
-    flexGrow: 1,
-    justifyContent: "center",
-  },
-  buttonContainer: {
-    width: "100%",
-    paddingBottom: 20,
-    paddingHorizontal: "auto",
     alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 24,
   },
-  button: {
-    minWidth: 200,
-    maxWidth: 300,
-    padding: 15,
-    alignItems: "center",
-    borderRadius: 5,
-    backgroundColor: "#007AFF",
-    color: "#FFFFFF",
+  rakaat: {
+    opacity: 0.7,
+    textAlign: "center",
   },
-  buttonText: {
-    color: "#FFFFFF",
+  clipTitle: {
+    textAlign: "center",
   },
 });

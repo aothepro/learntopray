@@ -40,50 +40,59 @@ const salam: TSourceDetail = {
 
 type Prayer = TPrayer[string];
 
-export function buildPrayerSequence(prayer: Prayer): TSourceDetail[] {
-  const sourceDetails: TSourceDetail[] = [
-    { title: "Niat", source: prayer.niat },
+export type TPrayerStep = TSourceDetail & {
+  rakaat: number | null;
+};
+
+export function buildPrayerSequence(prayer: Prayer): TPrayerStep[] {
+  const sourceDetails: TPrayerStep[] = [
+    { title: "Niat", source: prayer.niat, rakaat: null },
   ];
 
   for (let index = 0; index < prayer.rakaat; index++) {
-    sourceDetails.push(takbir);
+    const rakaat = index + 1;
+    const addStep = (detail: TSourceDetail) => {
+      sourceDetails.push({ ...detail, rakaat });
+    };
+
+    addStep(takbir);
 
     if (index === 0) {
-      sourceDetails.push({
+      addStep({
         title: "Iftitah",
         source: require("@/assets/audio/iftitah.mp3"),
       });
     }
 
-    sourceDetails.push(alfatihah);
+    addStep(alfatihah);
 
     // TEMPORARY Any surah
     if (index === 0) {
-      sourceDetails.push(ALL_SURAH.alkafirun);
+      addStep(ALL_SURAH.alkafirun);
     }
     if (index === 1) {
-      sourceDetails.push(ALL_SURAH.alikhlas);
+      addStep(ALL_SURAH.alikhlas);
     }
 
-    sourceDetails.push(takbir);
-    sourceDetails.push({
+    addStep(takbir);
+    addStep({
       title: "Ruku'",
       source: require("@/assets/audio/rukuk.mp3"),
     });
-    sourceDetails.push(itidal);
-    sourceDetails.push(takbir);
-    sourceDetails.push(sujud);
-    sourceDetails.push(takbir);
-    sourceDetails.push(julus);
-    sourceDetails.push(takbir);
-    sourceDetails.push(sujud);
-    sourceDetails.push(takbir);
+    addStep(itidal);
+    addStep(takbir);
+    addStep(sujud);
+    addStep(takbir);
+    addStep(julus);
+    addStep(takbir);
+    addStep(sujud);
+    addStep(takbir);
 
     if (index === prayer.rakaat - 1) {
-      sourceDetails.push(tahiyat_akhir);
-      sourceDetails.push(salam);
+      addStep(tahiyat_akhir);
+      addStep(salam);
     } else if (index % 2 !== 0) {
-      sourceDetails.push(tahiyat_awal);
+      addStep(tahiyat_awal);
     }
   }
 
