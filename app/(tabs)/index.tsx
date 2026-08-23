@@ -12,6 +12,7 @@ import { PRAYERS } from "@/prayers";
 const PRAYER_KEYS = Object.keys(PRAYERS);
 
 export default function HomeScreen() {
+  const pageBackground = useThemeColor({}, "background");
   const iconColor = useThemeColor({}, "icon");
   const cardBorder = useThemeColor(
     { light: "#E6E8EA", dark: "#2A2D2E" },
@@ -22,12 +23,15 @@ export default function HomeScreen() {
     "background",
   );
   const pressedBackground = useThemeColor(
-    { light: "#DDEFF3", dark: "#24373B" },
+    { light: "#EDF3F4", dark: "#24292B" },
     "background",
   );
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: pageBackground }]}
+      edges={["top"]}
+    >
       <ThemedView style={styles.screen}>
         <FlatList
           data={PRAYER_KEYS}
@@ -123,7 +127,6 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   cardPressed: {
-    opacity: 0.72,
     transform: [{ scale: 0.985 }],
   },
   cardInner: {

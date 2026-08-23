@@ -26,6 +26,15 @@ is not representative of the app.
 - `components/`: reusable themed UI.
 - `hooks/useTrackDurations.ts`: resolves clip lengths for whole-prayer progress.
 
+## Design and UX
+
+- Keep the visual style **minimal and professional**: restrained color, clear hierarchy, no decorative clutter.
+- Style must be **consistent across all pages and components** (spacing, radius, typography, press states, banners, lists).
+- Design is **user-experience first**: make the next action obvious, keep controls within reach, and avoid interrupting prayer flow.
+- Follow mobile UI standards: 44pt minimum hit targets, sufficient contrast, labels that match what the user sees, and light/dark parity.
+- Reuse `ThemedText`, `ThemedView`, and `useThemeColor`. Match page, header, and status-bar backgrounds so safe and unsafe areas do not split.
+- Prefer existing patterns (card rows, player bar, status banners) over one-off layouts. Animate only when it clarifies state, not for ornament.
+
 ## Conventions
 
 - Use strict TypeScript and functional React components.

@@ -15,6 +15,7 @@ const SELECTABLE_SURAH = Object.keys(ALL_SURAH).filter(
 
 export default function ExploreScreen() {
   const [selectedSurah, setSelectedSurah] = useState<string | null>(null);
+  const pageBackground = useThemeColor({}, "background");
   const iconColor = useThemeColor({}, "icon");
   const borderColor = useThemeColor(
     { light: "#E6E8EA", dark: "#2A2D2E" },
@@ -34,7 +35,10 @@ export default function ExploreScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: pageBackground }]}
+      edges={["top"]}
+    >
       <ThemedView style={styles.screen}>
         <ScrollView
           contentContainerStyle={styles.content}

@@ -3,12 +3,18 @@ import { ThemedView } from "@/components/ThemedView";
 import { useLocalSearchParams, router, Stack } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { useAudioPlaylist, useAudioPlaylistStatus } from "expo-audio";
+import {
+  setAudioModeAsync,
+  useAudioPlaylist,
+  useAudioPlaylistStatus,
+} from "expo-audio";
 import { PRAYERS, TPrayer } from "@/prayers";
 import { ThemedText } from "@/components/ThemedText";
 import { buildPrayerSequence } from "@/prayerSequence";
 import { PrayerPlayerBar } from "@/components/PrayerPlayerBar";
 import { useTrackDurations } from "@/hooks/useTrackDurations";
+import { useAudioEnvironment } from "@/hooks/useAudioEnvironment";
+import { AudioOutputStatus } from "@/components/AudioOutputStatus";
 
 type Prayer = TPrayer[string];
 
@@ -62,6 +68,7 @@ function PrayPlayer({ prayer }: { prayer: Prayer }) {
   });
   const status = useAudioPlaylistStatus(playlist);
   const { durations, isReady: canSeek } = useTrackDurations(sources);
+  const { hasExternalAudioDevice, isSilent } = useAudioEnvironment();
   const didComplete = useRef(false);
   const pendingSeek = useRef<{ index: number; offset: number } | null>(null);
 
@@ -95,6 +102,23 @@ function PrayPlayer({ prayer }: { prayer: Prayer }) {
     pendingSeek.current = null;
     playlist.seekTo(seek.offset);
   }, [playlist, status.currentIndex]);
+
+  const configureAudioMode = useCallback(
+    () =>
+      setAudioModeAsync({
+        allowsRecording: false,
+        playsInSilentMode: hasExternalAudioDevice,
+        shouldPlayInBackground: true,
+        interruptionMode: "doNotMix",
+      }),
+    [hasExternalAudioDevice],
+  );
+
+  useEffect(() => {
+    void configureAudioMode().catch((error) => {
+      console.warn("Unable to configure audio mode", error);
+    });
+  }, [configureAudioMode]);
 
   useEffect(() => {
     if (didComplete.current || sourceDetails.length === 0) {
@@ -140,25 +164,40 @@ function PrayPlayer({ prayer }: { prayer: Prayer }) {
     [canSeek, durations, playlist, status.currentIndex, total],
   );
 
+  const playPrayer = useCallback(async () => {
+    try {
+      await configureAudioMode();
+    } catch (error) {
+      console.warn("Unable to configure audio mode", error);
+    }
+
+    playlist.play();
+  }, [configureAudioMode, playlist]);
+
   const togglePlayback = useCallback(() => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
 
     if (status.playing) {
       playlist.pause();
     } else {
-      playlist.play();
+      void playPrayer();
     }
-  }, [playlist, status.playing]);
+  }, [playPrayer, playlist, status.playing]);
 
   const startPlayback = useCallback(() => {
     if (!status.playing) {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
-      playlist.play();
+      void playPrayer();
     }
-  }, [playlist, status.playing]);
+  }, [playPrayer, status.playing]);
 
   return (
     <ThemedView style={styles.container}>
+      <AudioOutputStatus
+        hasExternalAudioDevice={hasExternalAudioDevice}
+        isSilent={isSilent}
+        playing={status.playing}
+      />
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Start prayer"
