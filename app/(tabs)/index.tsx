@@ -1,46 +1,85 @@
-import { StyleSheet, Pressable, SectionList } from "react-native";
+import { FlatList, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as Haptics from "expo-haptics";
+import { Link } from "expo-router";
 
-import { HelloWave } from "@/components/HelloWave";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { Link } from "expo-router";
+import { IconSymbol } from "@/components/ui/IconSymbol";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { PRAYERS } from "@/prayers";
 
+const PRAYER_KEYS = Object.keys(PRAYERS);
+
 export default function HomeScreen() {
+  const iconColor = useThemeColor({}, "icon");
+  const cardBorder = useThemeColor(
+    { light: "#E6E8EA", dark: "#2A2D2E" },
+    "icon",
+  );
+
   return (
-    <SafeAreaView>
-      <ThemedView style={styles.container}>
-        <SectionList
-          sections={[
-            {
-              title: "Select Your Prayer",
-              data: Object.keys(PRAYERS),
-            },
-          ]}
-          keyExtractor={(item, index) => item + index}
-          renderItem={({ item }) => (
-            <ThemedView style={styles.stepContainer}>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+      <ThemedView style={styles.screen}>
+        <FlatList
+          data={PRAYER_KEYS}
+          keyExtractor={(item) => item}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            <View style={styles.header}>
+              <ThemedText type="title">Prayers</ThemedText>
+              <ThemedText style={styles.lede}>
+                Choose a prayer to begin
+              </ThemedText>
+            </View>
+          }
+          renderItem={({ item }) => {
+            const prayer = PRAYERS[item];
+
+            return (
               <Link
-                key={item}
                 href={{
                   pathname: "/pray",
                   params: { prayerName: item },
                 }}
                 asChild
               >
-                <Pressable>
-                  <ThemedText type="subtitle">{PRAYERS[item].title}</ThemedText>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`${prayer.title}, ${prayer.rakaat} rakaat`}
+                  onPressIn={() => {
+                    if (process.env.EXPO_OS === "ios") {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    }
+                  }}
+                  style={({ pressed }) => [
+                    styles.card,
+                    { borderColor: cardBorder },
+                    pressed && styles.cardPressed,
+                  ]}
+                >
+                  <ThemedView
+                    lightColor="#F7F8F8"
+                    darkColor="#1C1E1F"
+                    style={styles.cardInner}
+                  >
+                    <View style={styles.cardCopy}>
+                      <ThemedText type="subtitle">{prayer.title}</ThemedText>
+                      <ThemedText style={styles.meta}>
+                        {prayer.rakaat} rakaat
+                      </ThemedText>
+                    </View>
+                    <IconSymbol
+                      name="chevron.right"
+                      size={18}
+                      color={iconColor}
+                    />
+                  </ThemedView>
                 </Pressable>
               </Link>
-            </ThemedView>
-          )}
-          renderSectionHeader={({ section: { title } }) => (
-            <ThemedView style={styles.titleContainer}>
-              <ThemedText type="title">{title}</ThemedText>
-              <HelloWave />
-            </ThemedView>
-          )}
+            );
+          }}
         />
       </ThemedView>
     </SafeAreaView>
@@ -48,19 +87,52 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    height: "100%",
+  safeArea: {
+    flex: 1,
   },
-  titleContainer: {
+  screen: {
+    flex: 1,
+  },
+  list: {
+    paddingHorizontal: 20,
+    paddingBottom: 120,
+  },
+  header: {
+    paddingTop: 12,
+    paddingBottom: 28,
+    gap: 8,
+  },
+  lede: {
+    opacity: 0.65,
+    fontSize: 16,
+    lineHeight: 22,
+  },
+  card: {
+    marginBottom: 12,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    overflow: "hidden",
+  },
+  cardPressed: {
+    opacity: 0.72,
+    transform: [{ scale: 0.985 }],
+  },
+  cardInner: {
+    minHeight: 84,
+    paddingVertical: 18,
+    paddingHorizontal: 18,
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
+    justifyContent: "space-between",
+    gap: 16,
   },
-  stepContainer: {
-    padding: 8,
-    marginBottom: 8,
-    borderColor: "#DADADA",
-    borderTopWidth: 1,
-    margin: 8,
+  cardCopy: {
+    flex: 1,
+    gap: 4,
+  },
+  meta: {
+    fontSize: 14,
+    lineHeight: 20,
+    opacity: 0.6,
   },
 });
