@@ -8,6 +8,7 @@ import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 
 import { Colors } from "@/constants/Colors";
+import { AudioEnvironmentProvider } from "@/contexts/AudioEnvironmentContext";
 import { useColorScheme } from "@/hooks/useColorScheme";
 
 const LightNavigationTheme = {
@@ -37,27 +38,29 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={isDark ? DarkNavigationTheme : LightNavigationTheme}>
-      <Stack
-        screenOptions={{
-          contentStyle: { backgroundColor },
-          headerStyle: { backgroundColor },
-        }}
-      >
-        <Stack.Screen
-          name="(tabs)"
-          options={{ headerShown: false, title: "Prayers" }}
-        />
-        <Stack.Screen
-          name="pray/index"
-          options={{
-            title: "Prayer",
-            gestureEnabled: false,
-            fullScreenGestureEnabled: false,
+      <AudioEnvironmentProvider>
+        <Stack
+          screenOptions={{
+            contentStyle: { backgroundColor },
+            headerStyle: { backgroundColor },
           }}
-        />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
+        >
+          <Stack.Screen
+            name="(tabs)"
+            options={{ headerShown: false, title: "Prayers" }}
+          />
+          <Stack.Screen
+            name="pray/index"
+            options={{
+              title: "Prayer",
+              gestureEnabled: false,
+              fullScreenGestureEnabled: false,
+            }}
+          />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+        <StatusBar style="auto" />
+      </AudioEnvironmentProvider>
     </ThemeProvider>
   );
 }

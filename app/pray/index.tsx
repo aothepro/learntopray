@@ -12,8 +12,8 @@ import { PRAYERS, TPrayer } from "@/prayers";
 import { ThemedText } from "@/components/ThemedText";
 import { buildPrayerSequence } from "@/prayerSequence";
 import { PrayerPlayerBar } from "@/components/PrayerPlayerBar";
+import { useAudioEnvironmentContext } from "@/contexts/AudioEnvironmentContext";
 import { useTrackDurations } from "@/hooks/useTrackDurations";
-import { useAudioEnvironment } from "@/hooks/useAudioEnvironment";
 import { AudioOutputStatus } from "@/components/AudioOutputStatus";
 
 type Prayer = TPrayer[string];
@@ -68,7 +68,7 @@ function PrayPlayer({ prayer }: { prayer: Prayer }) {
   });
   const status = useAudioPlaylistStatus(playlist);
   const { durations, isReady: canSeek } = useTrackDurations(sources);
-  const { hasExternalAudioDevice, isSilent } = useAudioEnvironment();
+  const { hasExternalAudioDevice, isSilent } = useAudioEnvironmentContext();
   const didComplete = useRef(false);
   const pendingSeek = useRef<{ index: number; offset: number } | null>(null);
 
