@@ -17,6 +17,14 @@ export default function HomeScreen() {
     { light: "#E6E8EA", dark: "#2A2D2E" },
     "icon",
   );
+  const cardBackground = useThemeColor(
+    { light: "#F7F8F8", dark: "#1C1E1F" },
+    "background",
+  );
+  const pressedBackground = useThemeColor(
+    { light: "#DDEFF3", dark: "#24373B" },
+    "background",
+  );
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
@@ -55,15 +63,16 @@ export default function HomeScreen() {
                   }}
                   style={({ pressed }) => [
                     styles.card,
-                    { borderColor: cardBorder },
+                    {
+                      borderColor: cardBorder,
+                      backgroundColor: pressed
+                        ? pressedBackground
+                        : cardBackground,
+                    },
                     pressed && styles.cardPressed,
                   ]}
                 >
-                  <ThemedView
-                    lightColor="#F7F8F8"
-                    darkColor="#1C1E1F"
-                    style={styles.cardInner}
-                  >
+                  <View style={styles.cardInner}>
                     <View style={styles.cardCopy}>
                       <ThemedText type="subtitle">{prayer.title}</ThemedText>
                       <ThemedText style={styles.meta}>
@@ -75,7 +84,7 @@ export default function HomeScreen() {
                       size={18}
                       color={iconColor}
                     />
-                  </ThemedView>
+                  </View>
                 </Pressable>
               </Link>
             );

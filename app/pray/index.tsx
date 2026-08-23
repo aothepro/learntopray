@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet } from "react-native";
 import { ThemedView } from "@/components/ThemedView";
 import { useLocalSearchParams, router, Stack } from "expo-router";
+import * as Haptics from "expo-haptics";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useAudioPlaylist, useAudioPlaylistStatus } from "expo-audio";
 import { PRAYERS, TPrayer } from "@/prayers";
@@ -140,6 +141,8 @@ function PrayPlayer({ prayer }: { prayer: Prayer }) {
   );
 
   const togglePlayback = useCallback(() => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+
     if (status.playing) {
       playlist.pause();
     } else {
@@ -149,6 +152,7 @@ function PrayPlayer({ prayer }: { prayer: Prayer }) {
 
   const startPlayback = useCallback(() => {
     if (!status.playing) {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
       playlist.play();
     }
   }, [playlist, status.playing]);
