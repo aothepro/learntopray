@@ -1,6 +1,6 @@
-import { StyleSheet } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
 import { ThemedView } from "@/components/ThemedView";
-import { useLocalSearchParams, router } from "expo-router";
+import { useLocalSearchParams, router, Stack } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useAudioPlaylist, useAudioPlaylistStatus } from "expo-audio";
 import { PRAYERS, TPrayer } from "@/prayers";
@@ -15,16 +15,38 @@ export default function PrayScreen() {
   const { prayerName } = useLocalSearchParams() as { prayerName: string };
   const prayer = PRAYERS[prayerName];
 
+  const title = prayer?.title ?? "Prayer";
+
   if (!prayer) {
     console.log(prayerName, " does not exist in ", PRAYERS);
     return (
-      <ThemedView>
-        <ThemedText>Prayer Not Found</ThemedText>
-      </ThemedView>
+      <>
+        <Stack.Screen
+          options={{
+            title,
+            gestureEnabled: false,
+            fullScreenGestureEnabled: false,
+          }}
+        />
+        <ThemedView>
+          <ThemedText>Prayer Not Found</ThemedText>
+        </ThemedView>
+      </>
     );
   }
 
-  return <PrayPlayer prayer={prayer} />;
+  return (
+    <>
+      <Stack.Screen
+        options={{
+          title,
+          gestureEnabled: false,
+          fullScreenGestureEnabled: false,
+        }}
+      />
+      <PrayPlayer prayer={prayer} />
+    </>
+  );
 }
 
 function PrayPlayer({ prayer }: { prayer: Prayer }) {
@@ -125,9 +147,20 @@ function PrayPlayer({ prayer }: { prayer: Prayer }) {
     }
   }, [playlist, status.playing]);
 
+  const startPlayback = useCallback(() => {
+    if (!status.playing) {
+      playlist.play();
+    }
+  }, [playlist, status.playing]);
+
   return (
     <ThemedView style={styles.container}>
-      <ThemedView style={styles.currentStep}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Start prayer"
+        onPress={startPlayback}
+        style={styles.currentStep}
+      >
         <ThemedText type="subtitle" style={styles.rakaat}>
           {currentStep?.rakaat
             ? `Rakaat ${currentStep.rakaat} of ${prayer.rakaat}`
@@ -136,7 +169,7 @@ function PrayPlayer({ prayer }: { prayer: Prayer }) {
         <ThemedText type="title" style={styles.clipTitle}>
           {currentStep?.title}
         </ThemedText>
-      </ThemedView>
+      </Pressable>
       <PrayerPlayerBar
         elapsed={elapsed}
         total={total}

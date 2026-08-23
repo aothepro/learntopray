@@ -19,6 +19,14 @@ export default function RootLayout() {
           name="(tabs)"
           options={{ headerShown: false, title: "Prayers" }}
         />
+        <Stack.Screen
+          name="pray/index"
+          options={{
+            title: "Prayer",
+            gestureEnabled: false,
+            fullScreenGestureEnabled: false,
+          }}
+        />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />

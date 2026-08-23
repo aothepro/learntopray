@@ -71,6 +71,10 @@ export function PrayerPlayerBar({
       PanResponder.create({
         onStartShouldSetPanResponder: () => canSeek && total > 0,
         onMoveShouldSetPanResponder: () => canSeek && total > 0,
+        onStartShouldSetPanResponderCapture: () => canSeek && total > 0,
+        onMoveShouldSetPanResponderCapture: () => canSeek && total > 0,
+        onPanResponderTerminationRequest: () => false,
+        onShouldBlockNativeResponder: () => true,
         onPanResponderGrant: beginDrag,
         onPanResponderMove: (_, gestureState) => {
           setDragTime(timeAtPosition(dragStartX.current + gestureState.dx));
@@ -168,7 +172,7 @@ const styles = StyleSheet.create({
   },
   seekTouchTarget: {
     width: "100%",
-    height: 28,
+    height: 44,
     justifyContent: "center",
   },
   track: {
