@@ -1,16 +1,9 @@
-import {
-  StyleSheet,
-  FlatList,
-  Image,
-  Pressable,
-  SafeAreaView,
-} from "react-native";
+import { StyleSheet, FlatList, Image, Pressable } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Collapsible } from "@/components/Collapsible";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { IconSymbol } from "@/components/ui/IconSymbol";
 import { ALL_SURAH } from "@/surah";
 import React from "react";
 

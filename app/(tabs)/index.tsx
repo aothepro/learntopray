@@ -1,4 +1,5 @@
-import { StyleSheet, Pressable, SectionList, SafeAreaView } from "react-native";
+import { StyleSheet, Pressable, SectionList } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { HelloWave } from "@/components/HelloWave";
 import { ThemedText } from "@/components/ThemedText";
