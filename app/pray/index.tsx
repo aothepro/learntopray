@@ -14,8 +14,10 @@ import { buildPrayerSequence } from "@/prayerSequence";
 import { PrayerPlayerBar } from "@/components/PrayerPlayerBar";
 import { useAudioEnvironmentContext } from "@/contexts/AudioEnvironmentContext";
 import { usePlaybackSettings } from "@/contexts/PlaybackSettingsContext";
+import { useSurahSelection } from "@/contexts/SurahSelectionContext";
 import { useTrackDurations } from "@/hooks/useTrackDurations";
 import { AudioOutputStatus } from "@/components/AudioOutputStatus";
+import { resolveSlotsForPlayback } from "@/surahAssignment";
 
 type Prayer = TPrayer[string];
 
@@ -58,7 +60,24 @@ export default function PrayScreen() {
 }
 
 function PrayPlayer({ prayer }: { prayer: Prayer }) {
-  const sourceDetails = useMemo(() => buildPrayerSequence(prayer), [prayer]);
+  const { slots, isHydrated, ensurePlaybackSlots } = useSurahSelection();
+  const playbackSlots = useMemo(
+    () => (isHydrated ? resolveSlotsForPlayback(slots) : slots),
+    [isHydrated, slots],
+  );
+  const sourceDetails = useMemo(() => {
+    if (!isHydrated) {
+      return [];
+    }
+
+    return buildPrayerSequence(prayer, playbackSlots);
+  }, [isHydrated, playbackSlots, prayer]);
+
+  useEffect(() => {
+    if (isHydrated) {
+      ensurePlaybackSlots();
+    }
+  }, [ensurePlaybackSlots, isHydrated]);
   const sources = useMemo(
     () => sourceDetails.map((detail) => detail.source),
     [sourceDetails],
@@ -198,13 +217,23 @@ function PrayPlayer({ prayer }: { prayer: Prayer }) {
   }, []);
 
   const requestStart = useCallback(() => {
+    if (!isHydrated || sourceDetails.length === 0) {
+      return;
+    }
+
     if (hasStartedAudio.current || startDelaySeconds <= 0) {
       void playPrayer();
       return;
     }
 
     beginCountdown(startDelaySeconds);
-  }, [beginCountdown, playPrayer, startDelaySeconds]);
+  }, [
+    beginCountdown,
+    isHydrated,
+    playPrayer,
+    sourceDetails.length,
+    startDelaySeconds,
+  ]);
 
   useEffect(() => {
     if (countdown === null) {

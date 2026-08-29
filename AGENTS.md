@@ -23,6 +23,8 @@ is not representative of the app.
 - `prayers.ts`: prayer names, rakaat counts, and niat audio.
 - `surah.ts`: surah metadata and local audio sources.
 - `prayerSequence.ts`: ordered audio steps and their rakaat metadata.
+- `surahAssignment.ts`: rakaat 1–2 surah slot helpers (toggle, parse, playback fallback).
+- `contexts/SurahSelectionContext.tsx`: persisted Explore assignments shared with playback.
 - `components/`: reusable themed UI.
 - `hooks/useTrackDurations.ts`: resolves clip lengths for whole-prayer progress.
 
@@ -47,6 +49,16 @@ is not representative of the app.
 - Build prayer order in `prayerSequence.ts`; do not duplicate it in screens.
 - Prefer `useAudioPlaylist` for prayer playback and let hooks own native cleanup.
 - Trigger haptics from the shared action callback so every interaction path agrees.
+
+## Prayer flow
+
+- Catalog: `prayers.ts` defines each prayer’s title, niat clip, and rakaat count. Home starts `/pray` with the prayer key.
+- Sequence owner: `prayerSequence.ts` is the only place that orders clips. Screens must not duplicate step lists.
+- Per rakaat (1-based): Takbir, Iftitah only on rakaat 1, Al Fatihah, then an extra surah on rakaat 1 and 2 from persisted Explore assignments, then Takbir, Ruku, Itidal, Takbir, Sujud, Takbir, Julus, Takbir, Sujud, Takbir.
+- Sitting: Tahiyat Akhir + Salam on the last rakaat; Tahiyat Awal after even rakaats that are not last (`index % 2 !== 0` in the builder). Rakaats after 2 have no extra surah.
+- Explore: two ordered slots (same surah allowed). Fill the lowest empty slot; when both are filled, tap an assigned surah to unassign it (rakaat 2 first if duplicated). Unassigned rows cannot replace a full pair.
+- Empty selection: if both slots are empty when the user starts a prayer, persist and play Al Kafirun then Al Ikhlas. A single assigned slot is left as-is.
+- Playback: `app/pray/index.tsx` waits for selection hydration, then `buildPrayerSequence(prayer, slots)` and `useAudioPlaylist`. Al Fatihah is never an Explore assignment.
 
 ## Verification
 

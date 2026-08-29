@@ -1,22 +1,21 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { useSurahSelection } from "@/contexts/SurahSelectionContext";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { ALL_SURAH } from "@/surah";
-
-const SELECTABLE_SURAH = Object.keys(ALL_SURAH).filter(
-  (surahName) => ALL_SURAH[surahName].length !== undefined,
-);
+import { ALL_SURAH, SELECTABLE_SURAH_KEYS } from "@/surah";
+import {
+  areBothSlotsFilled,
+  rakaatsForSurah,
+} from "@/surahAssignment";
 
 export default function ExploreScreen() {
-  const [selectedSurah, setSelectedSurah] = useState<string | null>(null);
+  const { slots, toggleSurah } = useSurahSelection();
+  const pairFilled = areBothSlotsFilled(slots);
   const pageBackground = useThemeColor({}, "background");
-  const iconColor = useThemeColor({}, "icon");
   const borderColor = useThemeColor(
     { light: "#E6E8EA", dark: "#2A2D2E" },
     "icon",
@@ -47,7 +46,8 @@ export default function ExploreScreen() {
           <View style={styles.header}>
             <ThemedText type="title">Explore</ThemedText>
             <ThemedText style={styles.lede}>
-              Choose a short surah for your guided prayer
+              Assign short surahs to rakaat 1 and 2. Tap to fill the next empty
+              rakaat, or tap an assigned surah to remove it.
             </ThemedText>
           </View>
 
@@ -60,7 +60,7 @@ export default function ExploreScreen() {
             </View>
             <View
               style={[
-                styles.badge,
+                styles.sectionBadge,
                 { backgroundColor: selectedBackground },
               ]}
             >
@@ -71,19 +71,23 @@ export default function ExploreScreen() {
           </View>
 
           <View style={styles.cards}>
-            {SELECTABLE_SURAH.map((item) => {
+            {SELECTABLE_SURAH_KEYS.map((item) => {
               const surah = ALL_SURAH[item];
-              const isSelected = selectedSurah === item;
+              const rakaats = rakaatsForSurah(slots, item);
+              const isSelected = rakaats.length > 0;
+              const isUnavailable = pairFilled && !isSelected;
 
               return (
                 <Pressable
                   key={item}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected: isSelected }}
-                  accessibilityLabel={surah.title}
+                  accessibilityRole="button"
+                  accessibilityState={{
+                    selected: isSelected,
+                  }}
+                  accessibilityLabel={assignmentLabel(surah.title, rakaats)}
                   onPress={() => {
                     void Haptics.selectionAsync();
-                    setSelectedSurah(item);
+                    toggleSurah(item);
                   }}
                   style={({ pressed }) => [
                     styles.surahCard,
@@ -93,6 +97,7 @@ export default function ExploreScreen() {
                         ? selectedBackground
                         : cardBackground,
                     },
+                    isUnavailable && styles.unavailable,
                     pressed && styles.pressed,
                   ]}
                 >
@@ -103,18 +108,26 @@ export default function ExploreScreen() {
                     <ThemedText style={styles.surahMeta}>Short</ThemedText>
                   </View>
                   {isSelected ? (
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={24}
-                      color={accentColor}
-                    />
-                  ) : (
-                    <Ionicons
-                      name="ellipse-outline"
-                      size={24}
-                      color={iconColor}
-                    />
-                  )}
+                    <View style={styles.rakaatBadges}>
+                      {rakaats.map((rakaat) => (
+                        <View
+                          key={rakaat}
+                          style={[
+                            styles.rakaatBadge,
+                            { backgroundColor: accentColor },
+                          ]}
+                        >
+                          <ThemedText
+                            lightColor="#fff"
+                            darkColor="#11181C"
+                            style={styles.rakaatBadgeText}
+                          >
+                            {`Rakaat ${rakaat}`}
+                          </ThemedText>
+                        </View>
+                      ))}
+                    </View>
+                  ) : null}
                 </Pressable>
               );
             })}
@@ -130,6 +143,14 @@ export default function ExploreScreen() {
       </ThemedView>
     </SafeAreaView>
   );
+}
+
+function assignmentLabel(title: string, rakaats: number[]) {
+  if (rakaats.length === 0) {
+    return `${title}, not assigned`;
+  }
+
+  return `${title}, assigned to rakaat ${rakaats.join(" and ")}`;
 }
 
 const styles = StyleSheet.create({
@@ -166,7 +187,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     opacity: 0.6,
   },
-  badge: {
+  sectionBadge: {
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 999,
@@ -198,6 +219,30 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     opacity: 0.55,
+  },
+  rakaatBadges: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "flex-end",
+    gap: 6,
+    maxWidth: "52%",
+  },
+  rakaatBadge: {
+    minHeight: 28,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  rakaatBadgeText: {
+    fontSize: 13,
+    lineHeight: 16,
+    fontWeight: "700",
+    fontVariant: ["tabular-nums"],
+  },
+  unavailable: {
+    opacity: 0.45,
   },
   pressed: {
     opacity: 0.72,

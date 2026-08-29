@@ -33,4 +33,12 @@ export const ALL_SURAH: TSurah = {
 
 };
 
+export const SELECTABLE_SURAH_KEYS = Object.keys(ALL_SURAH).filter(
+  (surahName) => ALL_SURAH[surahName].length !== undefined,
+);
+
+export function isSelectableSurahKey(key: string) {
+  return ALL_SURAH[key]?.length !== undefined;
+}
+
 

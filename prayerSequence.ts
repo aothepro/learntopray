@@ -1,5 +1,6 @@
 import { ALL_SURAH, TSourceDetail } from "@/surah";
 import { TPrayer } from "@/prayers";
+import { type SurahSlots } from "@/surahAssignment";
 
 const alfatihah: TSourceDetail = ALL_SURAH.alfatihah;
 
@@ -44,7 +45,10 @@ export type TPrayerStep = TSourceDetail & {
   rakaat: number | null;
 };
 
-export function buildPrayerSequence(prayer: Prayer): TPrayerStep[] {
+export function buildPrayerSequence(
+  prayer: Prayer,
+  surahSlots: SurahSlots,
+): TPrayerStep[] {
   const sourceDetails: TPrayerStep[] = [
     { title: "Niat", source: prayer.niat, rakaat: null },
   ];
@@ -66,12 +70,11 @@ export function buildPrayerSequence(prayer: Prayer): TPrayerStep[] {
 
     addStep(alfatihah);
 
-    // TEMPORARY Any surah
-    if (index === 0) {
-      addStep(ALL_SURAH.alkafirun);
-    }
-    if (index === 1) {
-      addStep(ALL_SURAH.alikhlas);
+    if (index < 2) {
+      const selectedKey = surahSlots[index];
+      if (selectedKey) {
+        addStep(ALL_SURAH[selectedKey]);
+      }
     }
 
     addStep(takbir);
@@ -86,12 +89,13 @@ export function buildPrayerSequence(prayer: Prayer): TPrayerStep[] {
     addStep(julus);
     addStep(takbir);
     addStep(sujud);
-    addStep(takbir);
 
     if (index === prayer.rakaat - 1) {
+      addStep(takbir);
       addStep(tahiyat_akhir);
       addStep(salam);
     } else if (index % 2 !== 0) {
+      addStep(takbir);
       addStep(tahiyat_awal);
     }
   }
