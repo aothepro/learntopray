@@ -54,13 +54,30 @@ export default function PrayScreen() {
           fullScreenGestureEnabled: false,
         }}
       />
-      <PrayPlayer prayer={prayer} />
+      <PrayPlayer prayer={prayer} prayerName={prayerName} />
     </>
   );
 }
 
-function PrayPlayer({ prayer }: { prayer: Prayer }) {
-  const { slots, isHydrated, ensurePlaybackSlots } = useSurahSelection();
+function PrayPlayer({
+  prayer,
+  prayerName,
+}: {
+  prayer: Prayer;
+  prayerName: string;
+}) {
+  const {
+    slots,
+    isHydrated: isSurahSelectionHydrated,
+    ensurePlaybackSlots,
+  } = useSurahSelection();
+  const {
+    startDelaySeconds,
+    reciteDuaQunut,
+    isHydrated: arePlaybackSettingsHydrated,
+  } = usePlaybackSettings();
+  const isHydrated =
+    isSurahSelectionHydrated && arePlaybackSettingsHydrated;
   const playbackSlots = useMemo(
     () => (isHydrated ? resolveSlotsForPlayback(slots) : slots),
     [isHydrated, slots],
@@ -70,8 +87,11 @@ function PrayPlayer({ prayer }: { prayer: Prayer }) {
       return [];
     }
 
-    return buildPrayerSequence(prayer, playbackSlots);
-  }, [isHydrated, playbackSlots, prayer]);
+    return buildPrayerSequence(prayer, playbackSlots, {
+      prayerName,
+      reciteDuaQunut,
+    });
+  }, [isHydrated, playbackSlots, prayer, prayerName, reciteDuaQunut]);
 
   useEffect(() => {
     if (isHydrated) {
@@ -89,7 +109,6 @@ function PrayPlayer({ prayer }: { prayer: Prayer }) {
   const status = useAudioPlaylistStatus(playlist);
   const { durations, isReady: canSeek } = useTrackDurations(sources);
   const { hasExternalAudioDevice, isSilent } = useAudioEnvironmentContext();
-  const { startDelaySeconds } = usePlaybackSettings();
   const didComplete = useRef(false);
   const hasStartedAudio = useRef(false);
   const pendingSeek = useRef<{ index: number; offset: number } | null>(null);

@@ -14,6 +14,11 @@ const itidal: TSourceDetail = {
   source: require("@/assets/audio/itidal.mp3"),
 };
 
+const duaQunut: TSourceDetail = {
+  title: "Dua Qunut",
+  source: require("@/assets/audio/qunut.mp3"),
+};
+
 const sujud: TSourceDetail = {
   title: "Sujud",
   source: require("@/assets/audio/sujud.mp3"),
@@ -45,9 +50,15 @@ export type TPrayerStep = TSourceDetail & {
   rakaat: number | null;
 };
 
+type PrayerSequenceOptions = {
+  prayerName: string;
+  reciteDuaQunut: boolean;
+};
+
 export function buildPrayerSequence(
   prayer: Prayer,
   surahSlots: SurahSlots,
+  options: PrayerSequenceOptions,
 ): TPrayerStep[] {
   const sourceDetails: TPrayerStep[] = [
     { title: "Niat", source: prayer.niat, rakaat: null },
@@ -83,6 +94,13 @@ export function buildPrayerSequence(
       source: require("@/assets/audio/rukuk.mp3"),
     });
     addStep(itidal);
+    if (
+      options.prayerName === "subuh" &&
+      options.reciteDuaQunut &&
+      index === 1
+    ) {
+      addStep(duaQunut);
+    }
     addStep(takbir);
     addStep(sujud);
     addStep(takbir);
