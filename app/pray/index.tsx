@@ -2,7 +2,7 @@ import { Pressable, StyleSheet } from "react-native";
 import { ThemedView } from "@/components/ThemedView";
 import { useLocalSearchParams, router, Stack } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   setAudioModeAsync,
   useAudioPlaylist,
@@ -13,6 +13,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { buildPrayerSequence } from "@/prayerSequence";
 import { PrayerPlayerBar } from "@/components/PrayerPlayerBar";
 import { useAudioEnvironmentContext } from "@/contexts/AudioEnvironmentContext";
+import { usePlaybackSettings } from "@/contexts/PlaybackSettingsContext";
 import { useTrackDurations } from "@/hooks/useTrackDurations";
 import { AudioOutputStatus } from "@/components/AudioOutputStatus";
 
@@ -69,8 +70,16 @@ function PrayPlayer({ prayer }: { prayer: Prayer }) {
   const status = useAudioPlaylistStatus(playlist);
   const { durations, isReady: canSeek } = useTrackDurations(sources);
   const { hasExternalAudioDevice, isSilent } = useAudioEnvironmentContext();
+  const { startDelaySeconds } = usePlaybackSettings();
   const didComplete = useRef(false);
+  const hasStartedAudio = useRef(false);
   const pendingSeek = useRef<{ index: number; offset: number } | null>(null);
+  const [countdown, setCountdown] = useState<{
+    seconds: number;
+    token: number;
+  } | null>(null);
+  const isCountingDown = countdown !== null;
+  const countdownSeconds = countdown?.seconds ?? null;
 
   const currentStep =
     sourceDetails[status.currentIndex] ?? sourceDetails[0];
@@ -171,25 +180,94 @@ function PrayPlayer({ prayer }: { prayer: Prayer }) {
       console.warn("Unable to configure audio mode", error);
     }
 
+    hasStartedAudio.current = true;
     playlist.play();
   }, [configureAudioMode, playlist]);
+  const playPrayerRef = useRef(playPrayer);
+  playPrayerRef.current = playPrayer;
+
+  const cancelCountdown = useCallback(() => {
+    setCountdown(null);
+  }, []);
+
+  const beginCountdown = useCallback((seconds: number) => {
+    setCountdown((current) => ({
+      seconds,
+      token: (current?.token ?? 0) + 1,
+    }));
+  }, []);
+
+  const requestStart = useCallback(() => {
+    if (hasStartedAudio.current || startDelaySeconds <= 0) {
+      void playPrayer();
+      return;
+    }
+
+    beginCountdown(startDelaySeconds);
+  }, [beginCountdown, playPrayer, startDelaySeconds]);
+
+  useEffect(() => {
+    if (countdown === null) {
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      if (countdown.seconds <= 1) {
+        setCountdown(null);
+        void playPrayerRef.current();
+        return;
+      }
+
+      setCountdown({
+        seconds: countdown.seconds - 1,
+        token: countdown.token,
+      });
+    }, 1000);
+
+    return () => clearTimeout(timeout);
+  }, [countdown]);
 
   const togglePlayback = useCallback(() => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
 
+    if (isCountingDown) {
+      cancelCountdown();
+      return;
+    }
+
     if (status.playing) {
       playlist.pause();
     } else {
-      void playPrayer();
+      requestStart();
     }
-  }, [playPrayer, playlist, status.playing]);
+  }, [
+    cancelCountdown,
+    isCountingDown,
+    playlist,
+    requestStart,
+    status.playing,
+  ]);
 
   const startPlayback = useCallback(() => {
-    if (!status.playing) {
-      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
-      void playPrayer();
+    if (status.playing) {
+      return;
     }
-  }, [playPrayer, status.playing]);
+
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+
+    if (isCountingDown) {
+      beginCountdown(startDelaySeconds);
+      return;
+    }
+
+    requestStart();
+  }, [
+    beginCountdown,
+    isCountingDown,
+    requestStart,
+    startDelaySeconds,
+    status.playing,
+  ]);
 
   return (
     <ThemedView style={styles.container}>
@@ -200,24 +278,39 @@ function PrayPlayer({ prayer }: { prayer: Prayer }) {
       />
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Start prayer"
+        accessibilityLabel={
+          isCountingDown ? "Restart start delay" : "Start prayer"
+        }
         onPress={startPlayback}
         style={styles.currentStep}
       >
-        <ThemedText type="subtitle" style={styles.rakaat}>
-          {currentStep?.rakaat
-            ? `Rakaat ${currentStep.rakaat} of ${prayer.rakaat}`
-            : "Before Rakaat"}
-        </ThemedText>
-        <ThemedText type="title" style={styles.clipTitle}>
-          {currentStep?.title}
-        </ThemedText>
+        {isCountingDown ? (
+          <>
+            <ThemedText type="title" style={styles.countdown}>
+              {countdownSeconds}
+            </ThemedText>
+            <ThemedText type="subtitle" style={styles.rakaat}>
+              Starting soon
+            </ThemedText>
+          </>
+        ) : (
+          <>
+            <ThemedText type="subtitle" style={styles.rakaat}>
+              {currentStep?.rakaat
+                ? `Rakaat ${currentStep.rakaat} of ${prayer.rakaat}`
+                : "Before Rakaat"}
+            </ThemedText>
+            <ThemedText type="title" style={styles.clipTitle}>
+              {currentStep?.title}
+            </ThemedText>
+          </>
+        )}
       </Pressable>
       <PrayerPlayerBar
         elapsed={elapsed}
         total={total}
-        playing={status.playing}
-        canSeek={canSeek}
+        playing={status.playing || isCountingDown}
+        canSeek={canSeek && !isCountingDown}
         onSeek={seekToPrayerTime}
         onTogglePlayback={togglePlayback}
       />
@@ -241,6 +334,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   clipTitle: {
+    textAlign: "center",
+  },
+  countdown: {
+    fontSize: 72,
+    lineHeight: 80,
+    fontVariant: ["tabular-nums"],
     textAlign: "center",
   },
 });

@@ -9,6 +9,7 @@ import "react-native-reanimated";
 
 import { Colors } from "@/constants/Colors";
 import { AudioEnvironmentProvider } from "@/contexts/AudioEnvironmentContext";
+import { PlaybackSettingsProvider } from "@/contexts/PlaybackSettingsContext";
 import { useColorScheme } from "@/hooks/useColorScheme";
 
 const LightNavigationTheme = {
@@ -38,29 +39,31 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={isDark ? DarkNavigationTheme : LightNavigationTheme}>
-      <AudioEnvironmentProvider>
-        <Stack
-          screenOptions={{
-            contentStyle: { backgroundColor },
-            headerStyle: { backgroundColor },
-          }}
-        >
-          <Stack.Screen
-            name="(tabs)"
-            options={{ headerShown: false, title: "Prayers" }}
-          />
-          <Stack.Screen
-            name="pray/index"
-            options={{
-              title: "Prayer",
-              gestureEnabled: false,
-              fullScreenGestureEnabled: false,
+      <PlaybackSettingsProvider>
+        <AudioEnvironmentProvider>
+          <Stack
+            screenOptions={{
+              contentStyle: { backgroundColor },
+              headerStyle: { backgroundColor },
             }}
-          />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-        <StatusBar style="auto" />
-      </AudioEnvironmentProvider>
+          >
+            <Stack.Screen
+              name="(tabs)"
+              options={{ headerShown: false, title: "Prayers" }}
+            />
+            <Stack.Screen
+              name="pray/index"
+              options={{
+                title: "Prayer",
+                gestureEnabled: false,
+                fullScreenGestureEnabled: false,
+              }}
+            />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+          <StatusBar style="auto" />
+        </AudioEnvironmentProvider>
+      </PlaybackSettingsProvider>
     </ThemeProvider>
   );
 }
