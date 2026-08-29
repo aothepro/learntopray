@@ -21,9 +21,10 @@ is not representative of the app.
 - `app/`: Expo Router routes. Tabs live in `app/(tabs)/`.
 - `app/(tabs)/surah.tsx`: rakaat 1–2 short-surah assignment.
 - `app/pray/index.tsx`: prayer playback orchestration and whole-prayer seeking.
-- `prayers.ts`: prayer names, rakaat counts, and niat audio.
+- `prayers.ts`: prayer names, rakaat counts, and niyat audio.
 - `surah.ts`: surah metadata and local audio sources.
 - `prayerSequence.ts`: ordered audio steps and their rakaat metadata.
+- `prayerProgress.ts`: timed rakaat markers and step lookup for whole-prayer seeking.
 - `surahAssignment.ts`: rakaat 1–2 surah slot helpers (toggle, parse, playback fallback).
 - `contexts/SurahSelectionContext.tsx`: persisted Surah-tab assignments shared with playback.
 - `contexts/PlaybackSettingsContext.tsx`: persisted start delay and Subuh Dua Qunut preference.
@@ -54,7 +55,7 @@ is not representative of the app.
 
 ## Prayer flow
 
-- Catalog: `prayers.ts` defines each prayer’s title, niat clip, and rakaat count. Home starts `/pray` with the prayer key.
+- Catalog: `prayers.ts` defines each prayer’s title, niyat clip, and rakaat count. Home starts `/pray` with the prayer key.
 - Sequence owner: `prayerSequence.ts` is the only place that orders clips. Screens must not duplicate step lists.
 - Per rakaat (1-based): Takbir, Iftitah only on rakaat 1, Al Fatihah, then an extra surah on rakaat 1 and 2 from persisted Surah-tab assignments, then Takbir, Ruku, Itidal, optional Dua Qunut in Subuh rakaat 2, Takbir, Sujud, Takbir, Julus, Takbir, Sujud, Takbir.
 - Sitting: Tahiyat Akhir + Salam on the last rakaat; Tahiyat Awal after even rakaats that are not last (`index % 2 !== 0` in the builder). Rakaats after 2 have no extra surah.

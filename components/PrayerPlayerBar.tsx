@@ -10,6 +10,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/ThemedText";
+import { type RakaatMarker } from "@/prayerProgress";
 import { useThemeColor } from "@/hooks/useThemeColor";
 
 type PrayerPlayerBarProps = {
@@ -17,7 +18,11 @@ type PrayerPlayerBarProps = {
   total: number;
   playing: boolean;
   canSeek: boolean;
+  rakaatCount: number;
+  markers: RakaatMarker[];
+  chapterLabel: string;
   onSeek: (time: number) => void;
+  onScrubChange?: (time: number | null) => void;
   onTogglePlayback: () => void;
 };
 
@@ -37,7 +42,11 @@ export function PrayerPlayerBar({
   total,
   playing,
   canSeek,
+  rakaatCount,
+  markers,
+  chapterLabel,
   onSeek,
+  onScrubChange,
   onTogglePlayback,
 }: PrayerPlayerBarProps) {
   const insets = useSafeAreaInsets();
@@ -50,6 +59,8 @@ export function PrayerPlayerBar({
   const [trackWidth, setTrackWidth] = useState(0);
   const [dragTime, setDragTime] = useState<number | null>(null);
   const dragStartX = useRef(0);
+  const onScrubChangeRef = useRef(onScrubChange);
+  onScrubChangeRef.current = onScrubChange;
   const displayedElapsed = dragTime ?? elapsed;
   const progress = total > 0 ? clamp(displayedElapsed / total, 0, 1) : 0;
 
@@ -61,9 +72,14 @@ export function PrayerPlayerBar({
     return (clamp(position, 0, trackWidth) / trackWidth) * total;
   };
 
+  const updateDragTime = (time: number | null) => {
+    setDragTime(time);
+    onScrubChangeRef.current?.(time);
+  };
+
   const beginDrag = (event: GestureResponderEvent) => {
     dragStartX.current = event.nativeEvent.locationX;
-    setDragTime(timeAtPosition(dragStartX.current));
+    updateDragTime(timeAtPosition(dragStartX.current));
   };
 
   const panResponder = useMemo(
@@ -77,31 +93,33 @@ export function PrayerPlayerBar({
         onShouldBlockNativeResponder: () => true,
         onPanResponderGrant: beginDrag,
         onPanResponderMove: (_, gestureState) => {
-          setDragTime(timeAtPosition(dragStartX.current + gestureState.dx));
+          updateDragTime(timeAtPosition(dragStartX.current + gestureState.dx));
         },
         onPanResponderRelease: (_, gestureState) => {
           const seekTime = timeAtPosition(
             dragStartX.current + gestureState.dx,
           );
-          setDragTime(null);
+          updateDragTime(null);
           onSeek(seekTime);
         },
-        onPanResponderTerminate: () => setDragTime(null),
+        onPanResponderTerminate: () => updateDragTime(null),
       }),
     [canSeek, total, trackWidth, onSeek],
   );
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom + 16 }]}>
+      <ThemedText style={styles.chapterLabel}>{chapterLabel}</ThemedText>
       <View
         style={styles.seekTouchTarget}
         onLayout={(event) => setTrackWidth(event.nativeEvent.layout.width)}
         accessibilityRole="adjustable"
-        accessibilityLabel="Prayer progress"
+        accessibilityLabel={`Prayer progress, ${rakaatCount} rakaats`}
         accessibilityValue={{
           min: 0,
           max: Math.round(total),
           now: Math.round(displayedElapsed),
+          text: `${chapterLabel}, ${formatTime(displayedElapsed)} of ${formatTime(total)}`,
         }}
         accessibilityActions={[
           { name: "increment", label: "Forward 10 seconds" },
@@ -121,6 +139,23 @@ export function PrayerPlayerBar({
               { width: `${progress * 100}%`, backgroundColor: textColor },
             ]}
           />
+          {total > 0
+            ? markers.map((marker) => (
+                <View
+                  key={marker.rakaat}
+                  pointerEvents="none"
+                  accessibilityElementsHidden
+                  importantForAccessibility="no"
+                  style={[
+                    styles.marker,
+                    {
+                      left: `${(marker.startTime / total) * 100}%`,
+                      backgroundColor,
+                    },
+                  ]}
+                />
+              ))
+            : null}
           <View
             style={[
               styles.thumb,
@@ -175,14 +210,30 @@ const styles = StyleSheet.create({
     height: 44,
     justifyContent: "center",
   },
+  chapterLabel: {
+    alignSelf: "flex-start",
+    marginBottom: 4,
+    fontSize: 12,
+    lineHeight: 16,
+    opacity: 0.7,
+  },
   track: {
     width: "100%",
     height: 4,
     borderRadius: 2,
+    overflow: "visible",
   },
   fill: {
     height: "100%",
     borderRadius: 2,
+  },
+  marker: {
+    position: "absolute",
+    top: -3,
+    width: 2,
+    height: 10,
+    marginLeft: -1,
+    borderRadius: 1,
   },
   thumb: {
     position: "absolute",
@@ -191,9 +242,10 @@ const styles = StyleSheet.create({
     marginLeft: -6,
     top: -4,
     borderRadius: 6,
+    zIndex: 2,
   },
   draggingThumb: {
-    transform: [{ scale: 1.35 }],
+    transform: [{ scale: 1.5 }],
   },
   timeRow: {
     width: "100%",

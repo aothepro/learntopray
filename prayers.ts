@@ -3,7 +3,7 @@ import { AudioSource } from "expo-audio";
 export type TPrayer = {
   [key: string]: {
     title: string
-    niat: AudioSource,
+    niyat: AudioSource,
     rakaat: number
   }
 };
@@ -11,27 +11,27 @@ export type TPrayer = {
 export const PRAYERS: TPrayer = {
   "subuh": {
     title: "Subuh",
-    niat: require("@/assets/audio/niat/subuh.mp3"),
+    niyat: require("@/assets/audio/niyat/subuh.mp3"),
     rakaat: 2
   },
   "zuhr": {
     title: "Zuhr",
-    niat: require("./assets/audio/niat/zuhur.mp3"),
+    niyat: require("./assets/audio/niyat/zuhur.mp3"),
     rakaat: 4
   },
   "asr": {
     title: "‘Asr",
-    niat: require("./assets/audio/niat/asar.mp3"),
+    niyat: require("./assets/audio/niyat/asar.mp3"),
     rakaat: 4
   },
   "Maghrib": {
     title: "Maghrib",
-    niat: require("./assets/audio/niat/maghrib.mp3"),
+    niyat: require("./assets/audio/niyat/maghrib.mp3"),
     rakaat: 3
   },
   "ishak": {
     title: "‘Ishā",
-    niat: require("./assets/audio/niat/isyak.mp3"),
+    niyat: require("./assets/audio/niyat/isyak.mp3"),
     rakaat: 4
   },
 

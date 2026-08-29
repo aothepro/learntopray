@@ -61,7 +61,7 @@ export function buildPrayerSequence(
   options: PrayerSequenceOptions,
 ): TPrayerStep[] {
   const sourceDetails: TPrayerStep[] = [
-    { title: "Niat", source: prayer.niat, rakaat: null },
+    { title: "Niyat", source: prayer.niyat, rakaat: null },
   ];
 
   for (let index = 0; index < prayer.rakaat; index++) {

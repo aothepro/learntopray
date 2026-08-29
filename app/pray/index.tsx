@@ -17,6 +17,7 @@ import { usePlaybackSettings } from "@/contexts/PlaybackSettingsContext";
 import { useSurahSelection } from "@/contexts/SurahSelectionContext";
 import { useTrackDurations } from "@/hooks/useTrackDurations";
 import { AudioOutputStatus } from "@/components/AudioOutputStatus";
+import { rakaatMarkers, stepAtTime } from "@/prayerProgress";
 import { resolveSlotsForPlayback } from "@/surahAssignment";
 
 type Prayer = TPrayer[string];
@@ -139,6 +140,21 @@ function PrayPlayer({
     () => durations.reduce((sum, duration) => sum + duration, 0),
     [durations],
   );
+  const [scrubTime, setScrubTime] = useState<number | null>(null);
+  const markers = useMemo(
+    () => (canSeek ? rakaatMarkers(sourceDetails, durations) : []),
+    [canSeek, durations, sourceDetails],
+  );
+  const displayedStep = useMemo(() => {
+    if (scrubTime === null) {
+      return currentStep;
+    }
+
+    return stepAtTime(sourceDetails, durations, scrubTime) ?? currentStep;
+  }, [currentStep, durations, scrubTime, sourceDetails]);
+  const chapterLabel = displayedStep?.rakaat
+    ? `Rakaat ${displayedStep.rakaat} of ${prayer.rakaat}`
+    : "Niyat";
 
   useEffect(() => {
     const seek = pendingSeek.current;
@@ -344,12 +360,10 @@ function PrayPlayer({
         ) : (
           <>
             <ThemedText type="subtitle" style={styles.rakaat}>
-              {currentStep?.rakaat
-                ? `Rakaat ${currentStep.rakaat} of ${prayer.rakaat}`
-                : "Before Rakaat"}
+              {chapterLabel}
             </ThemedText>
             <ThemedText type="title" style={styles.clipTitle}>
-              {currentStep?.title}
+              {displayedStep?.title}
             </ThemedText>
           </>
         )}
@@ -359,7 +373,11 @@ function PrayPlayer({
         total={total}
         playing={status.playing || isCountingDown}
         canSeek={canSeek && !isCountingDown}
+        rakaatCount={prayer.rakaat}
+        markers={markers}
+        chapterLabel={chapterLabel}
         onSeek={seekToPrayerTime}
+        onScrubChange={setScrubTime}
         onTogglePlayback={togglePlayback}
       />
     </ThemedView>
