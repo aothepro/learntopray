@@ -1,52 +1,40 @@
 import {
   DEFAULT_SURAH_SLOTS,
+  assignSurahToSlot,
   parseStoredSurahSlots,
   resolveSlotsForPlayback,
   serializeSurahSlots,
-  toggleSurahAssignment,
   type SurahSlots,
 } from "@/surahAssignment";
 
-describe("toggleSurahAssignment", () => {
+describe("assignSurahToSlot", () => {
   const empty: SurahSlots = [null, null];
 
-  it("fills the lowest empty rakaat first", () => {
-    const afterFirst = toggleSurahAssignment(empty, "alkafirun");
+  it("assigns a surah to the chosen rakaat", () => {
+    const afterFirst = assignSurahToSlot(empty, 0, "alkafirun");
     expect(afterFirst).toEqual(["alkafirun", null]);
 
-    const afterSecond = toggleSurahAssignment(afterFirst, "alikhlas");
+    const afterSecond = assignSurahToSlot(afterFirst, 1, "alikhlas");
     expect(afterSecond).toEqual(["alkafirun", "alikhlas"]);
   });
 
-  it("assigns the same surah to the empty slot", () => {
-    expect(toggleSurahAssignment(["alkafirun", null], "alkafirun")).toEqual([
+  it("replaces the chosen rakaat without changing the other", () => {
+    expect(
+      assignSurahToSlot(["alkafirun", "alikhlas"], 0, "alikhlas"),
+    ).toEqual(["alikhlas", "alikhlas"]);
+  });
+
+  it("allows the same surah on both rakaats", () => {
+    expect(assignSurahToSlot(["alkafirun", null], 1, "alkafirun")).toEqual([
       "alkafirun",
       "alkafirun",
     ]);
   });
 
-  it("does not replace a full pair with an unassigned surah", () => {
-    expect(
-      toggleSurahAssignment(["alikhlas", "alikhlas"], "alkafirun"),
-    ).toEqual(["alikhlas", "alikhlas"]);
-  });
-
-  it("unassigns the matching rakaat when both slots are filled", () => {
-    const full: SurahSlots = ["alkafirun", "alikhlas"];
-    expect(toggleSurahAssignment(full, "alkafirun")).toEqual([null, "alikhlas"]);
-    expect(toggleSurahAssignment(full, "alikhlas")).toEqual(["alkafirun", null]);
-  });
-
-  it("removes rakaat 2 first when both slots use the same surah", () => {
-    expect(
-      toggleSurahAssignment(["alikhlas", "alikhlas"], "alikhlas"),
-    ).toEqual(["alikhlas", null]);
-  });
-
   it("ignores unknown surah keys", () => {
     const slots: SurahSlots = ["alkafirun", null];
-    expect(toggleSurahAssignment(slots, "alfatihah")).toEqual(slots);
-    expect(toggleSurahAssignment(slots, "unknown")).toEqual(slots);
+    expect(assignSurahToSlot(slots, 1, "alfatihah")).toEqual(slots);
+    expect(assignSurahToSlot(slots, 0, "unknown")).toEqual(slots);
   });
 });
 

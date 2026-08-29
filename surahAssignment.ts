@@ -65,10 +65,6 @@ export function rakaatsForSurah(slots: SurahSlots, surahKey: string) {
   return rakaats;
 }
 
-export function areBothSlotsFilled(slots: SurahSlots) {
-  return slots[0] !== null && slots[1] !== null;
-}
-
 export function areBothSlotsEmpty(slots: SurahSlots) {
   return slots[0] === null && slots[1] === null;
 }
@@ -81,35 +77,18 @@ export function resolveSlotsForPlayback(slots: SurahSlots): SurahSlots {
   return slots;
 }
 
-export function toggleSurahAssignment(
+export type SurahSlotIndex = 0 | 1;
+
+export function assignSurahToSlot(
   slots: SurahSlots,
+  slotIndex: SurahSlotIndex,
   surahKey: string,
 ): SurahSlots {
   if (!isSelectableSurahKey(surahKey)) {
     return slots;
   }
 
-  const [first, second] = slots;
-  const bothFilled = areBothSlotsFilled(slots);
-  const assignedToFirst = first === surahKey;
-  const assignedToSecond = second === surahKey;
-
-  if (bothFilled) {
-    if (assignedToFirst && assignedToSecond) {
-      return [first, null];
-    }
-    if (assignedToFirst) {
-      return [null, second];
-    }
-    if (assignedToSecond) {
-      return [first, null];
-    }
-    return slots;
-  }
-
-  if (first === null) {
-    return [surahKey, second];
-  }
-
-  return [first, surahKey];
+  const nextSlots: SurahSlots = [slots[0], slots[1]];
+  nextSlots[slotIndex] = surahKey;
+  return nextSlots;
 }

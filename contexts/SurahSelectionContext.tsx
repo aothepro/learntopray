@@ -12,18 +12,19 @@ import {
 import {
   DEFAULT_SURAH_SLOTS,
   SURAH_SELECTION_STORAGE_KEY,
+  type SurahSlotIndex,
   type SurahSlots,
   areBothSlotsEmpty,
+  assignSurahToSlot,
   parseStoredSurahSlots,
   resolveSlotsForPlayback,
   serializeSurahSlots,
-  toggleSurahAssignment,
 } from "@/surahAssignment";
 
 type SurahSelection = {
   slots: SurahSlots;
   isHydrated: boolean;
-  toggleSurah: (surahKey: string) => void;
+  assignSurah: (slotIndex: SurahSlotIndex, surahKey: string) => void;
   ensurePlaybackSlots: () => SurahSlots;
 };
 
@@ -67,9 +68,9 @@ export function SurahSelectionProvider({ children }: PropsWithChildren) {
     });
   }, []);
 
-  const toggleSurah = useCallback(
-    (surahKey: string) => {
-      persistSlots(toggleSurahAssignment(slots, surahKey));
+  const assignSurah = useCallback(
+    (slotIndex: SurahSlotIndex, surahKey: string) => {
+      persistSlots(assignSurahToSlot(slots, slotIndex, surahKey));
     },
     [persistSlots, slots],
   );
@@ -86,10 +87,10 @@ export function SurahSelectionProvider({ children }: PropsWithChildren) {
     () => ({
       slots,
       isHydrated,
-      toggleSurah,
+      assignSurah,
       ensurePlaybackSlots,
     }),
-    [ensurePlaybackSlots, isHydrated, slots, toggleSurah],
+    [assignSurah, ensurePlaybackSlots, isHydrated, slots],
   );
 
   return (
