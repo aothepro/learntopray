@@ -3,6 +3,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { Link } from "expo-router";
 
+import { logSelectPrayer } from "@/analytics";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
@@ -54,6 +55,9 @@ export default function HomeScreen() {
                 href={{
                   pathname: "/pray",
                   params: { prayerName: item },
+                }}
+                onPress={() => {
+                  logSelectPrayer(item);
                 }}
                 asChild
               >

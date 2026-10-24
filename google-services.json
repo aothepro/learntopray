@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "98682331322",
+    "project_id": "mobile-app-60c76",
+    "storage_bucket": "mobile-app-60c76.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:98682331322:android:d00ca0d3efb71c90906283",
+        "android_client_info": {
+          "package_name": "com.ashrafomar.prayerapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCdLm7oiLBpRZPRuzN6IarO_hS3miptNQU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

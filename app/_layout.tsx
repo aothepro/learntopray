@@ -5,8 +5,10 @@ import {
 } from "expo-router/react-navigation";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
 import "react-native-reanimated";
 
+import { configureAnalytics, logAppOpened } from "@/analytics";
 import { Colors } from "@/constants/Colors";
 import { AudioEnvironmentProvider } from "@/contexts/AudioEnvironmentContext";
 import { PlaybackSettingsProvider } from "@/contexts/PlaybackSettingsContext";
@@ -37,6 +39,11 @@ export default function RootLayout() {
   const backgroundColor = isDark
     ? Colors.dark.background
     : Colors.light.background;
+
+  useEffect(() => {
+    configureAnalytics();
+    logAppOpened();
+  }, []);
 
   return (
     <ThemeProvider value={isDark ? DarkNavigationTheme : LightNavigationTheme}>

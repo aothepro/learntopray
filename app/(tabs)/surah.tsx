@@ -9,6 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 
+import { logSelectSurah } from "@/analytics";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useSurahSelection } from "@/contexts/SurahSelectionContext";
@@ -159,6 +160,7 @@ export default function SurahScreen() {
                     onPress={() => {
                       void Haptics.selectionAsync();
                       assignSurah(activeSlot, item);
+                      logSelectSurah(item, activeSlot + 1);
                       const otherSlot: SurahSlotIndex =
                         activeSlot === 0 ? 1 : 0;
                       if (slots[otherSlot] === null) {

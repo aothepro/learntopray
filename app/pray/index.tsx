@@ -1,4 +1,9 @@
 import { Pressable, StyleSheet } from "react-native";
+import {
+  logPrayerAbandoned,
+  logPrayerCompleted,
+  logPrayerStarted,
+} from "@/analytics";
 import { ThemedView } from "@/components/ThemedView";
 import { useLocalSearchParams, router, Stack } from "expo-router";
 import * as Haptics from "expo-haptics";
@@ -112,6 +117,14 @@ function PrayPlayer({
   const { hasExternalAudioDevice, isSilent } = useAudioEnvironmentContext();
   const didComplete = useRef(false);
   const hasStartedAudio = useRef(false);
+  const hasLoggedPrayerStart = useRef(false);
+  const prayerEventParams = useMemo(
+    () => ({
+      prayerName,
+      rakaatCount: prayer.rakaat,
+    }),
+    [prayer.rakaat, prayerName],
+  );
   const pendingSeek = useRef<{ index: number; offset: number } | null>(null);
   const [countdown, setCountdown] = useState<{
     seconds: number;
@@ -191,9 +204,23 @@ function PrayPlayer({
     const isLastTrack = status.currentIndex >= sourceDetails.length - 1;
     if (status.didJustFinish && isLastTrack) {
       didComplete.current = true;
+      logPrayerCompleted(prayerEventParams);
       router.dismiss();
     }
-  }, [status.didJustFinish, status.currentIndex, sourceDetails.length]);
+  }, [
+    prayerEventParams,
+    status.didJustFinish,
+    status.currentIndex,
+    sourceDetails.length,
+  ]);
+
+  useEffect(() => {
+    return () => {
+      if (hasLoggedPrayerStart.current && !didComplete.current) {
+        logPrayerAbandoned(prayerEventParams);
+      }
+    };
+  }, [prayerEventParams]);
 
   const seekToPrayerTime = useCallback(
     (requestedTime: number) => {
@@ -235,8 +262,12 @@ function PrayPlayer({
     }
 
     hasStartedAudio.current = true;
+    if (!hasLoggedPrayerStart.current) {
+      hasLoggedPrayerStart.current = true;
+      logPrayerStarted(prayerEventParams);
+    }
     playlist.play();
-  }, [configureAudioMode, playlist]);
+  }, [configureAudioMode, playlist, prayerEventParams]);
   const playPrayerRef = useRef(playPrayer);
   playPrayerRef.current = playPrayer;
 

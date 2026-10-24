@@ -9,6 +9,8 @@ import {
   useState,
 } from "react";
 
+import { logSettingsChange, syncPlaybackUserProperties } from "@/analytics";
+
 const START_DELAY_STORAGE_KEY = "playback.startDelaySeconds";
 const RECITE_DUA_QUNUT_STORAGE_KEY = "playback.reciteDuaQunut.v1";
 export const MIN_START_DELAY_SECONDS = 0;
@@ -86,9 +88,26 @@ export function PlaybackSettingsProvider({ children }: PropsWithChildren) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!isHydrated) {
+      return;
+    }
+
+    syncPlaybackUserProperties({
+      startDelaySeconds,
+      reciteDuaQunut,
+    });
+  }, [isHydrated, reciteDuaQunut, startDelaySeconds]);
+
   const setStartDelaySeconds = useCallback((seconds: number) => {
     const nextDelay = clampStartDelaySeconds(seconds);
-    setStartDelaySecondsState(nextDelay);
+    setStartDelaySecondsState((current) => {
+      if (current !== nextDelay) {
+        logSettingsChange("start_delay_seconds", String(nextDelay));
+      }
+
+      return nextDelay;
+    });
     void AsyncStorage.setItem(
       START_DELAY_STORAGE_KEY,
       String(nextDelay),
@@ -98,7 +117,13 @@ export function PlaybackSettingsProvider({ children }: PropsWithChildren) {
   }, []);
 
   const setReciteDuaQunut = useCallback((enabled: boolean) => {
-    setReciteDuaQunutState(enabled);
+    setReciteDuaQunutState((current) => {
+      if (current !== enabled) {
+        logSettingsChange("recite_dua_qunut", String(enabled));
+      }
+
+      return enabled;
+    });
     void AsyncStorage.setItem(
       RECITE_DUA_QUNUT_STORAGE_KEY,
       String(enabled),
