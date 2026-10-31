@@ -6,7 +6,6 @@ import {
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import "react-native-reanimated";
 
 import { configureAnalytics, logAppOpened } from "@/analytics";
 import { Colors } from "@/constants/Colors";

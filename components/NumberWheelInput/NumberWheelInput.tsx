@@ -5,6 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   View,
+  type ScrollViewInstance,
 } from "react-native";
 import * as Haptics from "expo-haptics";
 
@@ -35,7 +36,7 @@ export function NumberWheelInput({
   incrementAccessibilityLabel = "Increase",
   decrementAccessibilityLabel = "Decrease",
 }: NumberWheelInputProps) {
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollViewInstance>(null);
   const lastReportedValue = useRef(value);
   const highlightColor = useThemeColor(
     { light: "#E7EEF0", dark: "#2A3234" },

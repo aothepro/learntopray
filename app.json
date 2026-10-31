@@ -50,27 +50,21 @@
           "enableBackgroundPlayback": true
         }
       ],
-      [
-        "@react-native-firebase/app",
-        {
-          "ios": {
-            "disableSPM": true
-          }
-        }
-      ],
+      "@react-native-firebase/app",
       "@react-native-firebase/analytics",
       "./plugins/withIosLinkFixes.js",
       [
         "expo-build-properties",
         {
           "ios": {
-            "useFrameworks": "static"
+            "useFrameworks": "dynamic"
           }
         }
       ]
     ],
     "experiments": {
-      "typedRoutes": true
+      "typedRoutes": true,
+      "reactCompiler": true
     },
     "extra": {
       "router": {},

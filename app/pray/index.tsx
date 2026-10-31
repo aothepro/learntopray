@@ -269,7 +269,9 @@ function PrayPlayer({
     playlist.play();
   }, [configureAudioMode, playlist, prayerEventParams]);
   const playPrayerRef = useRef(playPrayer);
-  playPrayerRef.current = playPrayer;
+  useEffect(() => {
+    playPrayerRef.current = playPrayer;
+  }, [playPrayer]);
 
   const cancelCountdown = useCallback(() => {
     setCountdown(null);

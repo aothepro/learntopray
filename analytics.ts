@@ -1,3 +1,5 @@
+import { TurboModuleRegistry } from "react-native";
+
 type PrayerEventParams = {
   prayerName: string;
   rakaatCount: number;
@@ -7,9 +9,18 @@ type AnalyticsModule = typeof import("@react-native-firebase/analytics");
 
 let analyticsModule: AnalyticsModule | null | undefined;
 
+function isFirebaseNativeModuleAvailable(): boolean {
+  return TurboModuleRegistry.get("NativeRNFBTurboApp") != null;
+}
+
 async function loadAnalytics(): Promise<AnalyticsModule | null> {
   if (analyticsModule !== undefined) {
     return analyticsModule;
+  }
+
+  if (!isFirebaseNativeModuleAvailable()) {
+    analyticsModule = null;
+    return null;
   }
 
   try {

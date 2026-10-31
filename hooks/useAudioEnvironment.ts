@@ -24,7 +24,9 @@ export function useAudioEnvironment() {
       subscriptions.push(
         deviceInfoEmitter.addListener(
           "RNDeviceInfo_headphoneConnectionDidChange",
-          setHasExternalAudioDevice,
+          (connected) => {
+            setHasExternalAudioDevice(connected === true);
+          },
         ),
       );
     }

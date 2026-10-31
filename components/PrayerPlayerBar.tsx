@@ -1,12 +1,6 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useMemo, useRef, useState } from "react";
-import {
-  GestureResponderEvent,
-  PanResponder,
-  Pressable,
-  StyleSheet,
-  View,
-} from "react-native";
+import { PanResponder, Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -59,53 +53,47 @@ export function PrayerPlayerBar({
   const [trackWidth, setTrackWidth] = useState(0);
   const [dragTime, setDragTime] = useState<number | null>(null);
   const dragStartX = useRef(0);
-  const onScrubChangeRef = useRef(onScrubChange);
-  onScrubChangeRef.current = onScrubChange;
   const displayedElapsed = dragTime ?? elapsed;
   const progress = total > 0 ? clamp(displayedElapsed / total, 0, 1) : 0;
 
-  const timeAtPosition = (position: number) => {
-    if (trackWidth <= 0 || total <= 0) {
-      return 0;
-    }
+  const panResponder = useMemo(() => {
+    const timeAtPosition = (position: number) => {
+      if (trackWidth <= 0 || total <= 0) {
+        return 0;
+      }
 
-    return (clamp(position, 0, trackWidth) / trackWidth) * total;
-  };
+      return (clamp(position, 0, trackWidth) / trackWidth) * total;
+    };
 
-  const updateDragTime = (time: number | null) => {
-    setDragTime(time);
-    onScrubChangeRef.current?.(time);
-  };
+    const updateDragTime = (time: number | null) => {
+      setDragTime(time);
+      onScrubChange?.(time);
+    };
 
-  const beginDrag = (event: GestureResponderEvent) => {
-    dragStartX.current = event.nativeEvent.locationX;
-    updateDragTime(timeAtPosition(dragStartX.current));
-  };
-
-  const panResponder = useMemo(
-    () =>
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => canSeek && total > 0,
-        onMoveShouldSetPanResponder: () => canSeek && total > 0,
-        onStartShouldSetPanResponderCapture: () => canSeek && total > 0,
-        onMoveShouldSetPanResponderCapture: () => canSeek && total > 0,
-        onPanResponderTerminationRequest: () => false,
-        onShouldBlockNativeResponder: () => true,
-        onPanResponderGrant: beginDrag,
-        onPanResponderMove: (_, gestureState) => {
-          updateDragTime(timeAtPosition(dragStartX.current + gestureState.dx));
-        },
-        onPanResponderRelease: (_, gestureState) => {
-          const seekTime = timeAtPosition(
-            dragStartX.current + gestureState.dx,
-          );
-          updateDragTime(null);
-          onSeek(seekTime);
-        },
-        onPanResponderTerminate: () => updateDragTime(null),
-      }),
-    [canSeek, total, trackWidth, onSeek],
-  );
+    // Gesture handlers run after the finger moves, not while rendering.
+    // eslint-disable-next-line react-hooks/refs
+    return PanResponder.create({
+      onStartShouldSetPanResponder: () => canSeek && total > 0,
+      onMoveShouldSetPanResponder: () => canSeek && total > 0,
+      onStartShouldSetPanResponderCapture: () => canSeek && total > 0,
+      onMoveShouldSetPanResponderCapture: () => canSeek && total > 0,
+      onPanResponderTerminationRequest: () => false,
+      onShouldBlockNativeResponder: () => true,
+      onPanResponderGrant: (event) => {
+        dragStartX.current = event.nativeEvent.locationX;
+        updateDragTime(timeAtPosition(dragStartX.current));
+      },
+      onPanResponderMove: (_, gestureState) => {
+        updateDragTime(timeAtPosition(dragStartX.current + gestureState.dx));
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        const seekTime = timeAtPosition(dragStartX.current + gestureState.dx);
+        updateDragTime(null);
+        onSeek(seekTime);
+      },
+      onPanResponderTerminate: () => updateDragTime(null),
+    });
+  }, [canSeek, onScrubChange, onSeek, total, trackWidth]);
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom + 16 }]}>
