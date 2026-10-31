@@ -4,9 +4,19 @@ import { type SurahSlots } from "@/surahAssignment";
 
 const alfatihah: TSourceDetail = ALL_SURAH.alfatihah;
 
-const takbir: TSourceDetail = {
+const takbirShort: TSourceDetail = {
   title: "Takbir",
   source: require("@/assets/audio/takbir_short.wav"),
+};
+
+const takbirMid: TSourceDetail = {
+  title: "Takbir",
+  source: require("@/assets/audio/takbir_mid.wav"),
+};
+
+const takbirLong: TSourceDetail = {
+  title: "Takbir",
+  source: require("@/assets/audio/takbir_long.wav"),
 };
 
 const itidal: TSourceDetail = {
@@ -70,7 +80,7 @@ export function buildPrayerSequence(
       sourceDetails.push({ ...detail, rakaat });
     };
 
-    addStep(takbir);
+    addStep(index === 0 ? takbirMid : takbirLong);
 
     if (index === 0) {
       addStep({
@@ -88,7 +98,7 @@ export function buildPrayerSequence(
       }
     }
 
-    addStep(takbir);
+    addStep(takbirShort);
     addStep({
       title: "Ruku'",
       source: require("@/assets/audio/rukuk_x1.wav"),
@@ -101,19 +111,19 @@ export function buildPrayerSequence(
     ) {
       addStep(duaQunut);
     }
-    addStep(takbir);
+    addStep(takbirLong);
     addStep(sujud);
-    addStep(takbir);
+    addStep(takbirShort);
     addStep(julus);
-    addStep(takbir);
+    addStep(takbirShort);
     addStep(sujud);
 
     if (index === prayer.rakaat - 1) {
-      addStep(takbir);
+      addStep(takbirShort);
       addStep(tahiyat_akhir);
       addStep(salam);
     } else if (index % 2 !== 0) {
-      addStep(takbir);
+      addStep(takbirShort);
       addStep(tahiyat_awal);
     }
   }
