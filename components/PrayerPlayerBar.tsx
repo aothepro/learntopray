@@ -1,4 +1,5 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useMemo, useRef, useState } from "react";
 import { PanResponder, Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,6 +20,8 @@ type PrayerPlayerBarProps = {
   onScrubChange?: (time: number | null) => void;
   onTogglePlayback: () => void;
 };
+
+const SKIP_SECONDS = 5;
 
 const clamp = (value: number, minimum: number, maximum: number) =>
   Math.min(Math.max(value, minimum), maximum);
@@ -55,6 +58,13 @@ export function PrayerPlayerBar({
   const dragStartX = useRef(0);
   const displayedElapsed = dragTime ?? elapsed;
   const progress = total > 0 ? clamp(displayedElapsed / total, 0, 1) : 0;
+  const seekBy = (seconds: number) => {
+    if (!canSeek || total <= 0) {
+      return;
+    }
+
+    onSeek(clamp(displayedElapsed + seconds, 0, total));
+  };
 
   const panResponder = useMemo(() => {
     const timeAtPosition = (position: number) => {
@@ -164,24 +174,56 @@ export function PrayerPlayerBar({
         </ThemedText>
       </View>
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={playing ? "Pause prayer" : "Play prayer"}
-        hitSlop={12}
-        onPress={onTogglePlayback}
-        style={({ pressed }) => [
-          styles.playButton,
-          { backgroundColor: textColor },
-          pressed && styles.pressed,
-        ]}
-      >
-        <Ionicons
-          name={playing ? "pause" : "play"}
-          size={32}
-          color={backgroundColor}
-          style={!playing && styles.playIcon}
-        />
-      </Pressable>
+      <View style={styles.controls}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Back 5 seconds"
+          accessibilityState={{ disabled: !canSeek }}
+          disabled={!canSeek}
+          hitSlop={8}
+          onPress={() => seekBy(-SKIP_SECONDS)}
+          style={({ pressed }) => [
+            styles.skipButton,
+            !canSeek && styles.disabled,
+            pressed && canSeek && styles.pressed,
+          ]}
+        >
+          <MaterialIcons name="replay-5" size={36} color={textColor} />
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={playing ? "Pause prayer" : "Play prayer"}
+          hitSlop={12}
+          onPress={onTogglePlayback}
+          style={({ pressed }) => [
+            styles.playButton,
+            { backgroundColor: textColor },
+            pressed && styles.pressed,
+          ]}
+        >
+          <Ionicons
+            name={playing ? "pause" : "play"}
+            size={32}
+            color={backgroundColor}
+            style={!playing && styles.playIcon}
+          />
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Forward 5 seconds"
+          accessibilityState={{ disabled: !canSeek }}
+          disabled={!canSeek}
+          hitSlop={8}
+          onPress={() => seekBy(SKIP_SECONDS)}
+          style={({ pressed }) => [
+            styles.skipButton,
+            !canSeek && styles.disabled,
+            pressed && canSeek && styles.pressed,
+          ]}
+        >
+          <MaterialIcons name="forward-5" size={36} color={textColor} />
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -247,13 +289,29 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     fontVariant: ["tabular-nums"],
   },
+  controls: {
+    width: "100%",
+    marginTop: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 40,
+  },
+  skipButton: {
+    width: 48,
+    height: 48,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   playButton: {
     width: 64,
     height: 64,
-    marginTop: 16,
     borderRadius: 32,
     alignItems: "center",
     justifyContent: "center",
+  },
+  disabled: {
+    opacity: 0.35,
   },
   playIcon: {
     marginLeft: 3,

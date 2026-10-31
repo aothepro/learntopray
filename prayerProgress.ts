@@ -25,6 +25,23 @@ export function rakaatMarkers(
   return markers;
 }
 
+export function hasSeekLanded(
+  currentIndex: number,
+  currentTime: number,
+  seek: { index: number; offset: number },
+) {
+  if (currentIndex !== seek.index || !Number.isFinite(currentTime)) {
+    return false;
+  }
+
+  // skipTo reloads the destination clip at time 0 before seekTo applies the offset.
+  if (seek.offset > 0.4 && currentTime < 0.15) {
+    return false;
+  }
+
+  return currentTime >= seek.offset - 0.3;
+}
+
 export function stepIndexAtTime(durations: number[], time: number) {
   if (durations.length === 0) {
     return 0;

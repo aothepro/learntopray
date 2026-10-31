@@ -22,7 +22,7 @@ import { usePlaybackSettings } from "@/contexts/PlaybackSettingsContext";
 import { useSurahSelection } from "@/contexts/SurahSelectionContext";
 import { useTrackDurations } from "@/hooks/useTrackDurations";
 import { AudioOutputStatus } from "@/components/AudioOutputStatus";
-import { rakaatMarkers, stepAtTime } from "@/prayerProgress";
+import { hasSeekLanded, rakaatMarkers, stepAtTime } from "@/prayerProgress";
 import { resolveSlotsForPlayback } from "@/surahAssignment";
 
 type Prayer = TPrayer[string];
@@ -125,7 +125,12 @@ function PrayPlayer({
     }),
     [prayer.rakaat, prayerName],
   );
-  const pendingSeek = useRef<{ index: number; offset: number } | null>(null);
+  const pendingSeek = useRef<{
+    index: number;
+    offset: number;
+    issued: boolean;
+  } | null>(null);
+  const [heldTime, setHeldTime] = useState<number | null>(null);
   const [countdown, setCountdown] = useState<{
     seconds: number;
     token: number;
@@ -135,7 +140,7 @@ function PrayPlayer({
 
   const currentStep =
     sourceDetails[status.currentIndex] ?? sourceDetails[0];
-  const elapsed = useMemo(
+  const reportedElapsed = useMemo(
     () => {
       if (!canSeek) {
         return 0;
@@ -149,6 +154,7 @@ function PrayPlayer({
     },
     [canSeek, durations, status.currentIndex, status.currentTime],
   );
+  const elapsed = heldTime ?? reportedElapsed;
   const total = useMemo(
     () => durations.reduce((sum, duration) => sum + duration, 0),
     [durations],
@@ -159,25 +165,38 @@ function PrayPlayer({
     [canSeek, durations, sourceDetails],
   );
   const displayedStep = useMemo(() => {
-    if (scrubTime === null) {
+    const previewTime = scrubTime ?? heldTime;
+    if (previewTime === null) {
       return currentStep;
     }
 
-    return stepAtTime(sourceDetails, durations, scrubTime) ?? currentStep;
-  }, [currentStep, durations, scrubTime, sourceDetails]);
+    return stepAtTime(sourceDetails, durations, previewTime) ?? currentStep;
+  }, [currentStep, durations, heldTime, scrubTime, sourceDetails]);
   const chapterLabel = displayedStep?.rakaat
     ? `Rakaat ${displayedStep.rakaat} of ${prayer.rakaat}`
     : "Niyat";
 
   useEffect(() => {
     const seek = pendingSeek.current;
-    if (!seek || status.currentIndex !== seek.index) {
+    if (!seek) {
       return;
     }
 
-    pendingSeek.current = null;
-    playlist.seekTo(seek.offset);
-  }, [playlist, status.currentIndex]);
+    if (!seek.issued) {
+      if (status.currentIndex !== seek.index) {
+        return;
+      }
+
+      seek.issued = true;
+      void playlist.seekTo(seek.offset);
+      return;
+    }
+
+    if (hasSeekLanded(status.currentIndex, status.currentTime, seek)) {
+      pendingSeek.current = null;
+      setHeldTime(null);
+    }
+  }, [playlist, status.currentIndex, status.currentTime]);
 
   const configureAudioMode = useCallback(
     () =>
@@ -244,10 +263,12 @@ function PrayPlayer({
       }
 
       const offset = targetTime - startTime;
-      if (index === status.currentIndex) {
-        playlist.seekTo(offset);
+      const sameClip = index === status.currentIndex;
+      pendingSeek.current = { index, offset, issued: sameClip };
+      setHeldTime(targetTime);
+      if (sameClip) {
+        void playlist.seekTo(offset);
       } else {
-        pendingSeek.current = { index, offset };
         playlist.skipTo(index);
       }
     },

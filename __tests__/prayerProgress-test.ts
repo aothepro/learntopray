@@ -1,4 +1,4 @@
-import { rakaatMarkers, stepAtTime } from "@/prayerProgress";
+import { hasSeekLanded, rakaatMarkers, stepAtTime } from "@/prayerProgress";
 import { type TPrayerStep } from "@/prayerSequence";
 
 const niyat = {
@@ -65,5 +65,23 @@ describe("stepAtTime", () => {
     expect(stepAtTime(steps, durations, 10)?.title).toBe("Takbir");
     expect(stepAtTime(steps, durations, 16)?.title).toBe("Al Fatihah");
     expect(stepAtTime(steps, durations, 20)?.title).toBe("Ruku");
+  });
+});
+
+describe("hasSeekLanded", () => {
+  const seek = { index: 3, offset: 8 };
+
+  it("waits while a reloaded clip is still at time zero", () => {
+    expect(hasSeekLanded(3, 0, seek)).toBe(false);
+    expect(hasSeekLanded(2, 8, seek)).toBe(false);
+  });
+
+  it("lands once the destination clip reaches the offset", () => {
+    expect(hasSeekLanded(3, 7.8, seek)).toBe(true);
+    expect(hasSeekLanded(3, 8.4, seek)).toBe(true);
+  });
+
+  it("accepts a seek that targets the start of a clip", () => {
+    expect(hasSeekLanded(1, 0, { index: 1, offset: 0.1 })).toBe(true);
   });
 });
