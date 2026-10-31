@@ -11,27 +11,27 @@ export type TPrayer = {
 export const PRAYERS: TPrayer = {
   "subuh": {
     title: "Subuh",
-    niyat: require("@/assets/audio/niyat/subuh.mp3"),
+    niyat: require("@/assets/audio/niyat/niat_subuh_x1.wav"),
     rakaat: 2
   },
   "zuhr": {
     title: "Zuhr",
-    niyat: require("./assets/audio/niyat/zuhur.mp3"),
+    niyat: require("./assets/audio/niyat/niat_zuhur_x1.wav"),
     rakaat: 4
   },
   "asr": {
     title: "‘Asr",
-    niyat: require("./assets/audio/niyat/asar.mp3"),
+    niyat: require("./assets/audio/niyat/niat_asr_x1.wav"),
     rakaat: 4
   },
   "Maghrib": {
     title: "Maghrib",
-    niyat: require("./assets/audio/niyat/maghrib.mp3"),
+    niyat: require("./assets/audio/niyat/niat_magrib_x1.wav"),
     rakaat: 3
   },
   "ishak": {
     title: "‘Ishā",
-    niyat: require("./assets/audio/niyat/isyak.mp3"),
+    niyat: require("./assets/audio/niyat/niat_isha_x1.wav"),
     rakaat: 4
   },
 

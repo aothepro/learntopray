@@ -18,16 +18,16 @@ export type TSurah = {
 export const ALL_SURAH: TSurah = {
   alfatihah: {
     title: "Al Fatihah",
-    source: require("@/assets/audio/surah/alfatihah.mp3"),
+    source: require("@/assets/audio/surah/alfatihah_x1.wav"),
   },
   alikhlas: {
     title: "Al Ikhlas",
-    source: require("@/assets/audio/surah/short/alikhlas.mp3"),
+    source: require("@/assets/audio/surah/short/aliklas_x1.wav"),
     length: "short"
   },
   alkafirun: {
     title: "Al Kafirun",
-    source: require("@/assets/audio/surah/short/alkafirun.mp3"),
+    source: require("@/assets/audio/surah/short/alkafirun_x1.wav"),
     length: "short"
   },
 

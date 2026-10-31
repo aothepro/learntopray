@@ -6,42 +6,42 @@ const alfatihah: TSourceDetail = ALL_SURAH.alfatihah;
 
 const takbir: TSourceDetail = {
   title: "Takbir",
-  source: require("@/assets/audio/takbir.mp3"),
+  source: require("@/assets/audio/takbir_short.wav"),
 };
 
 const itidal: TSourceDetail = {
   title: "Itidal",
-  source: require("@/assets/audio/itidal.mp3"),
+  source: require("@/assets/audio/itidal_x1.wav"),
 };
 
 const duaQunut: TSourceDetail = {
   title: "Dua Qunut",
-  source: require("@/assets/audio/qunut.mp3"),
+  source: require("@/assets/audio/qunut_x1.wav"),
 };
 
 const sujud: TSourceDetail = {
   title: "Sujud",
-  source: require("@/assets/audio/sujud.mp3"),
+  source: require("@/assets/audio/sujud_x1.wav"),
 };
 
 const julus: TSourceDetail = {
   title: "Julus",
-  source: require("@/assets/audio/julus.mp3"),
+  source: require("@/assets/audio/julus_x1.wav"),
 };
 
 const tahiyat_awal: TSourceDetail = {
   title: "Tahiyat Awal",
-  source: require("@/assets/audio/tahiyat_awal.mp3"),
+  source: require("@/assets/audio/tahiyat_awal_x1.wav"),
 };
 
 const tahiyat_akhir: TSourceDetail = {
   title: "Tahiyat Akhir",
-  source: require("@/assets/audio/tahiyat_akhir.mp3"),
+  source: require("@/assets/audio/tahiyat_akhir_x1.wav"),
 };
 
 const salam: TSourceDetail = {
   title: "Salam",
-  source: require("@/assets/audio/salam.mp3"),
+  source: require("@/assets/audio/salam_x1.wav"),
 };
 
 type Prayer = TPrayer[string];
@@ -75,7 +75,7 @@ export function buildPrayerSequence(
     if (index === 0) {
       addStep({
         title: "Iftitah",
-        source: require("@/assets/audio/iftitah.mp3"),
+        source: require("@/assets/audio/iftitah_x1.wav"),
       });
     }
 
@@ -91,7 +91,7 @@ export function buildPrayerSequence(
     addStep(takbir);
     addStep({
       title: "Ruku'",
-      source: require("@/assets/audio/rukuk.mp3"),
+      source: require("@/assets/audio/rukuk_x1.wav"),
     });
     addStep(itidal);
     if (
