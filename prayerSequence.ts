@@ -119,7 +119,7 @@ export function buildPrayerSequence(
     addStep(sujud);
 
     if (index === prayer.rakaat - 1) {
-      addStep(takbirShort);
+      addStep(takbirMid);
       addStep(tahiyat_akhir);
       addStep(salam);
     } else if (index % 2 !== 0) {
