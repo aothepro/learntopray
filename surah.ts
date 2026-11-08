@@ -30,6 +30,16 @@ export const ALL_SURAH: TSurah = {
     source: require("@/assets/audio/surah/short/alkafirun_x1.wav"),
     length: "short"
   },
+  annas: {
+    title: "An Nas",
+    source: require("@/assets/audio/surah/short/annas_x1.wav"),
+    length: "short"
+  },
+  alfalaq: {
+    title: "Al Falaq",
+    source: require("@/assets/audio/surah/short/alfalaq_x1.wav"),
+    length: "short"
+  },
 
 };
 
