@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import {
   logPrayerAbandoned,
   logPrayerCompleted,
@@ -22,7 +22,9 @@ import { usePlaybackSettings } from "@/contexts/PlaybackSettingsContext";
 import { useSurahSelection } from "@/contexts/SurahSelectionContext";
 import { useTrackDurations } from "@/hooks/useTrackDurations";
 import { AudioOutputStatus } from "@/components/AudioOutputStatus";
+import { PrayerPosture } from "@/components/PrayerPosture";
 import { hasSeekLanded, rakaatMarkers, stepAtTime } from "@/prayerProgress";
+import { POSTURE_LABEL } from "@/postures";
 import { resolveSlotsForPlayback } from "@/surahAssignment";
 
 type Prayer = TPrayer[string];
@@ -397,30 +399,39 @@ function PrayPlayer({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={
-          isCountingDown ? "Restart start delay" : "Start prayer"
+          isCountingDown
+            ? "Restart start delay"
+            : displayedStep
+              ? `Start prayer. ${chapterLabel}. ${displayedStep.title}. ${POSTURE_LABEL[displayedStep.posture]}`
+              : "Start prayer"
         }
         onPress={startPlayback}
         style={styles.currentStep}
       >
-        {isCountingDown ? (
-          <>
-            <ThemedText type="title" style={styles.countdown}>
-              {countdownSeconds}
-            </ThemedText>
-            <ThemedText type="subtitle" style={styles.rakaat}>
-              Starting soon
-            </ThemedText>
-          </>
-        ) : (
-          <>
-            <ThemedText type="subtitle" style={styles.rakaat}>
-              {chapterLabel}
-            </ThemedText>
-            <ThemedText type="title" style={styles.clipTitle}>
-              {displayedStep?.title}
-            </ThemedText>
-          </>
-        )}
+        {displayedStep ? (
+          <PrayerPosture posture={displayedStep.posture} />
+        ) : null}
+        <View style={styles.stepHeading}>
+          {isCountingDown ? (
+            <>
+              <ThemedText type="title" style={styles.countdown}>
+                {countdownSeconds}
+              </ThemedText>
+              <ThemedText type="subtitle" style={styles.rakaat}>
+                Starting soon
+              </ThemedText>
+            </>
+          ) : (
+            <>
+              <ThemedText type="subtitle" style={styles.rakaat}>
+                {chapterLabel}
+              </ThemedText>
+              <ThemedText type="title" style={styles.clipTitle}>
+                {displayedStep?.title}
+              </ThemedText>
+            </>
+          )}
+        </View>
       </Pressable>
       <PrayerPlayerBar
         elapsed={elapsed}
@@ -444,10 +455,15 @@ const styles = StyleSheet.create({
   },
   currentStep: {
     flex: 1,
-    justifyContent: "center",
     alignItems: "center",
     gap: 12,
     paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 8,
+  },
+  stepHeading: {
+    alignItems: "center",
+    gap: 4,
   },
   rakaat: {
     opacity: 0.7,

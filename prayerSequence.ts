@@ -56,8 +56,21 @@ const salam: TSourceDetail = {
 
 type Prayer = TPrayer[string];
 
+export type PrayerPosture =
+  | "standing"
+  | "takbir"
+  | "qiyam"
+  | "ruku"
+  | "qunut"
+  | "sujud"
+  | "julus"
+  | "iftirash"
+  | "tawarruk"
+  | "salam";
+
 export type TPrayerStep = TSourceDetail & {
   rakaat: number | null;
+  posture: PrayerPosture;
 };
 
 type PrayerSequenceOptions = {
@@ -71,60 +84,72 @@ export function buildPrayerSequence(
   options: PrayerSequenceOptions,
 ): TPrayerStep[] {
   const sourceDetails: TPrayerStep[] = [
-    { title: "Niyat", source: prayer.niyat, rakaat: null },
+    {
+      title: "Niyat",
+      source: prayer.niyat,
+      rakaat: null,
+      posture: "standing",
+    },
   ];
 
   for (let index = 0; index < prayer.rakaat; index++) {
     const rakaat = index + 1;
-    const addStep = (detail: TSourceDetail) => {
-      sourceDetails.push({ ...detail, rakaat });
+    const addStep = (detail: TSourceDetail, posture: PrayerPosture) => {
+      sourceDetails.push({ ...detail, rakaat, posture });
     };
 
-    addStep(index === 0 ? takbirMid : takbirLong);
+    addStep(index === 0 ? takbirMid : takbirLong, "takbir");
 
     if (index === 0) {
-      addStep({
-        title: "Iftitah",
-        source: require("@/assets/audio/iftitah_x1.wav"),
-      });
+      addStep(
+        {
+          title: "Iftitah",
+          source: require("@/assets/audio/iftitah_x1.wav"),
+        },
+        "qiyam",
+      );
     }
 
-    addStep(alfatihah);
+    addStep(alfatihah, "qiyam");
 
     if (index < 2) {
       const selectedKey = surahSlots[index];
       if (selectedKey) {
-        addStep(ALL_SURAH[selectedKey]);
+        addStep(ALL_SURAH[selectedKey], "qiyam");
       }
     }
 
-    addStep(takbirShort);
-    addStep({
-      title: "Ruku'",
-      source: require("@/assets/audio/rukuk_x1.wav"),
-    });
-    addStep(itidal);
+    addStep(takbirShort, "takbir");
+    addStep(
+      {
+        title: "Ruku'",
+        source: require("@/assets/audio/rukuk_x1.wav"),
+      },
+      "ruku",
+    );
+    addStep(itidal, "standing");
     if (
       options.prayerName === "subuh" &&
       options.reciteDuaQunut &&
       index === 1
     ) {
-      addStep(duaQunut);
+      addStep(duaQunut, "qunut");
     }
-    addStep(takbirLong);
-    addStep(sujud);
-    addStep(takbirShort);
-    addStep(julus);
-    addStep(takbirShort);
-    addStep(sujud);
+    // The takbir is said while moving, so the clip shows the pose you arrive in.
+    addStep(takbirLong, "sujud");
+    addStep(sujud, "sujud");
+    addStep(takbirShort, "julus");
+    addStep(julus, "julus");
+    addStep(takbirShort, "sujud");
+    addStep(sujud, "sujud");
 
     if (index === prayer.rakaat - 1) {
-      addStep(takbirMid);
-      addStep(tahiyat_akhir);
-      addStep(salam);
+      addStep(takbirMid, "tawarruk");
+      addStep(tahiyat_akhir, "tawarruk");
+      addStep(salam, "salam");
     } else if (index % 2 !== 0) {
-      addStep(takbirShort);
-      addStep(tahiyat_awal);
+      addStep(takbirShort, "iftirash");
+      addStep(tahiyat_awal, "iftirash");
     }
   }
 
