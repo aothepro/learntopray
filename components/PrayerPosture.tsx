@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Image, type LayoutChangeEvent, StyleSheet, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 
 import { POSTURE_IMAGE, POSTURE_LABEL } from "@/postures";
 import { type PrayerPosture as PrayerPostureName } from "@/prayerSequence";
@@ -9,32 +8,15 @@ type PrayerPostureProps = {
 };
 
 export function PrayerPosture({ posture }: PrayerPostureProps) {
-  const [frameSize, setFrameSize] = useState({ width: 0, height: 0 });
-
-  const onFrameLayout = (event: LayoutChangeEvent) => {
-    const { width, height } = event.nativeEvent.layout;
-    setFrameSize((current) =>
-      current.width === width && current.height === height
-        ? current
-        : { width, height },
-    );
-  };
-
   return (
-    <View style={styles.frame} onLayout={onFrameLayout}>
-      {frameSize.width > 0 && frameSize.height > 0 ? (
-        <Image
-          source={POSTURE_IMAGE[posture]}
-          accessibilityLabel={POSTURE_LABEL[posture]}
-          accessibilityIgnoresInvertColors
-          resizeMode="contain"
-          style={{
-            position: "absolute",
-            width: frameSize.width,
-            height: frameSize.height,
-          }}
-        />
-      ) : null}
+    <View style={styles.frame}>
+      <Image
+        source={POSTURE_IMAGE[posture]}
+        accessibilityLabel={POSTURE_LABEL[posture]}
+        accessibilityIgnoresInvertColors
+        resizeMode="contain"
+        style={styles.image}
+      />
     </View>
   );
 }
@@ -50,5 +32,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: "hidden",
     backgroundColor: "#F4F0E6",
+  },
+  image: {
+    width: "100%",
+    height: "100%",
   },
 });

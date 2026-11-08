@@ -1,4 +1,11 @@
-import { Pressable, StyleSheet, View } from "react-native";
+import {
+  LayoutAnimation,
+  Platform,
+  Pressable,
+  StyleSheet,
+  UIManager,
+  View,
+} from "react-native";
 import {
   logPrayerAbandoned,
   logPrayerCompleted,
@@ -28,6 +35,13 @@ import { POSTURE_LABEL } from "@/postures";
 import { resolveSlotsForPlayback } from "@/surahAssignment";
 
 type Prayer = TPrayer[string];
+
+if (
+  Platform.OS === "android" &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 export default function PrayScreen() {
   const { prayerName } = useLocalSearchParams() as { prayerName: string };
@@ -177,6 +191,15 @@ function PrayPlayer({
   const chapterLabel = displayedStep?.rakaat
     ? `Rakaat ${displayedStep.rakaat} of ${prayer.rakaat}`
     : "Niyat";
+  const hasBanner = hasExternalAudioDevice || isSilent;
+  const hasPosture = Boolean(displayedStep);
+  const layoutKey = `${hasBanner}:${hasPosture}:${isCountingDown}`;
+  const previousLayoutKey = useRef(layoutKey);
+
+  if (previousLayoutKey.current !== layoutKey) {
+    previousLayoutKey.current = layoutKey;
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+  }
 
   useEffect(() => {
     const seek = pendingSeek.current;
