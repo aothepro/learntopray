@@ -12,7 +12,8 @@ export const POSTURE_IMAGE: Record<PrayerPosture, ImageSourcePropType> = {
   julus: require("@/assets/postures/julus.jpg"),
   iftirash: require("@/assets/postures/iftirash.jpg"),
   tawarruk: require("@/assets/postures/tawarruk.jpg"),
-  salam: require("@/assets/postures/salam.jpg"),
+  salamRight: require("@/assets/postures/salam_right.jpg"),
+  salamLeft: require("@/assets/postures/salam_left.jpg"),
 };
 
 export const POSTURE_LABEL: Record<PrayerPosture, string> = {
@@ -25,5 +26,6 @@ export const POSTURE_LABEL: Record<PrayerPosture, string> = {
   julus: "Sitting between prostrations",
   iftirash: "Sitting on the left foot with the right foot upright and the index finger raised",
   tawarruk: "Sitting with the left foot out to the right and the index finger raised",
-  salam: "Sitting with the head turned to the right",
+  salamRight: "Sitting with the head turned to the right",
+  salamLeft: "Sitting with the head turned to the left",
 };

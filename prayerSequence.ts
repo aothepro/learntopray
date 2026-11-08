@@ -49,9 +49,14 @@ const tahiyat_akhir: TSourceDetail = {
   source: require("@/assets/audio/tahiyat_akhir_x1.wav"),
 };
 
-const salam: TSourceDetail = {
+const salamRight: TSourceDetail = {
   title: "Salam",
-  source: require("@/assets/audio/salam_x1.wav"),
+  source: require("@/assets/audio/salam_right_x1.wav"),
+};
+
+const salamLeft: TSourceDetail = {
+  title: "Salam",
+  source: require("@/assets/audio/salam_left_x1.wav"),
 };
 
 type Prayer = TPrayer[string];
@@ -66,7 +71,8 @@ export type PrayerPosture =
   | "julus"
   | "iftirash"
   | "tawarruk"
-  | "salam";
+  | "salamRight"
+  | "salamLeft";
 
 export type TPrayerStep = TSourceDetail & {
   rakaat: number | null;
@@ -146,7 +152,8 @@ export function buildPrayerSequence(
     if (index === prayer.rakaat - 1) {
       addStep(takbirMid, "tawarruk");
       addStep(tahiyat_akhir, "tawarruk");
-      addStep(salam, "salam");
+      addStep(salamRight, "salamRight");
+      addStep(salamLeft, "salamLeft");
     } else if (index % 2 !== 0) {
       addStep(takbirShort, "iftirash");
       addStep(tahiyat_awal, "iftirash");

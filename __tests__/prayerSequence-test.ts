@@ -71,15 +71,22 @@ describe("Dua Qunut prayer sequence", () => {
     expect(sequence.find((step) => step.title === "Dua Qunut")).toMatchObject({
       posture: "qunut",
     });
-    expect(sequence.at(-3)).toMatchObject({
+    expect(sequence.at(-4)).toMatchObject({
       title: "Takbir",
       posture: "tawarruk",
     });
-    expect(sequence.at(-2)).toMatchObject({
+    expect(sequence.at(-3)).toMatchObject({
       title: "Tahiyat Akhir",
       posture: "tawarruk",
     });
-    expect(sequence.at(-1)).toMatchObject({ title: "Salam", posture: "salam" });
+    expect(sequence.at(-2)).toMatchObject({
+      title: "Salam",
+      posture: "salamRight",
+    });
+    expect(sequence.at(-1)).toMatchObject({
+      title: "Salam",
+      posture: "salamLeft",
+    });
   });
 
   it("uses iftirash for Tahiyat Awal and tawarruk for Tahiyat Akhir", () => {
